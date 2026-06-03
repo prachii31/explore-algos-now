@@ -43,20 +43,7 @@ const clone = (n: Node | null): Node | null => n ? { val: n.val, left: clone(n.l
 type Layout = { val: number; x: number; y: number; parent?: { x: number; y: number } };
 
 const layout = (root: Node | null): { nodes: Layout[]; w: number; h: number } => {
-  const nodes: Layout[] = [];
   const dx = 50, dy = 70;
-  let nextX = 0;
-  const walk = (n: Node | null, depth: number, parent?: { x: number; y: number }): number => {
-    if (!n) return 0;
-    const lx = walk(n.left, depth + 1, undefined);
-    const x = nextX++ * dx + 30;
-    const y = depth * dy + 40;
-    nodes.push({ val: n.val, x, y, parent });
-    walk(n.right, depth + 1, undefined);
-    // fix parent linkage after positions are known: handled below
-    return lx;
-  };
-  // Two-pass: compute positions, then set parent coords
   const positions: Layout[] = [];
   let counter = 0;
   const inorder = (n: Node | null, depth: number): Layout | null => {
