@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StackRouteImport } from './routes/stack'
+import { Route as SortingRouteImport } from './routes/sorting'
+import { Route as SearchingRouteImport } from './routes/searching'
+import { Route as QueueRouteImport } from './routes/queue'
+import { Route as LinkedListRouteImport } from './routes/linked-list'
+import { Route as BstRouteImport } from './routes/bst'
 import { Route as IndexRouteImport } from './routes/index'
 
+const StackRoute = StackRouteImport.update({
+  id: '/stack',
+  path: '/stack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SortingRoute = SortingRouteImport.update({
+  id: '/sorting',
+  path: '/sorting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchingRoute = SearchingRouteImport.update({
+  id: '/searching',
+  path: '/searching',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QueueRoute = QueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LinkedListRoute = LinkedListRouteImport.update({
+  id: '/linked-list',
+  path: '/linked-list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BstRoute = BstRouteImport.update({
+  id: '/bst',
+  path: '/bst',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bst': typeof BstRoute
+  '/linked-list': typeof LinkedListRoute
+  '/queue': typeof QueueRoute
+  '/searching': typeof SearchingRoute
+  '/sorting': typeof SortingRoute
+  '/stack': typeof StackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bst': typeof BstRoute
+  '/linked-list': typeof LinkedListRoute
+  '/queue': typeof QueueRoute
+  '/searching': typeof SearchingRoute
+  '/sorting': typeof SortingRoute
+  '/stack': typeof StackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bst': typeof BstRoute
+  '/linked-list': typeof LinkedListRoute
+  '/queue': typeof QueueRoute
+  '/searching': typeof SearchingRoute
+  '/sorting': typeof SortingRoute
+  '/stack': typeof StackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/bst'
+    | '/linked-list'
+    | '/queue'
+    | '/searching'
+    | '/sorting'
+    | '/stack'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/bst'
+    | '/linked-list'
+    | '/queue'
+    | '/searching'
+    | '/sorting'
+    | '/stack'
+  id:
+    | '__root__'
+    | '/'
+    | '/bst'
+    | '/linked-list'
+    | '/queue'
+    | '/searching'
+    | '/sorting'
+    | '/stack'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BstRoute: typeof BstRoute
+  LinkedListRoute: typeof LinkedListRoute
+  QueueRoute: typeof QueueRoute
+  SearchingRoute: typeof SearchingRoute
+  SortingRoute: typeof SortingRoute
+  StackRoute: typeof StackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stack': {
+      id: '/stack'
+      path: '/stack'
+      fullPath: '/stack'
+      preLoaderRoute: typeof StackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sorting': {
+      id: '/sorting'
+      path: '/sorting'
+      fullPath: '/sorting'
+      preLoaderRoute: typeof SortingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/searching': {
+      id: '/searching'
+      path: '/searching'
+      fullPath: '/searching'
+      preLoaderRoute: typeof SearchingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/queue': {
+      id: '/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/linked-list': {
+      id: '/linked-list'
+      path: '/linked-list'
+      fullPath: '/linked-list'
+      preLoaderRoute: typeof LinkedListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bst': {
+      id: '/bst'
+      path: '/bst'
+      fullPath: '/bst'
+      preLoaderRoute: typeof BstRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +177,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BstRoute: BstRoute,
+  LinkedListRoute: LinkedListRoute,
+  QueueRoute: QueueRoute,
+  SearchingRoute: SearchingRoute,
+  SortingRoute: SortingRoute,
+  StackRoute: StackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
