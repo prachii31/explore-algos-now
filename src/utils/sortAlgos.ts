@@ -9,7 +9,7 @@ export type Frame = {
   swaps: number;
 };
 
-type Yield = (f: Omit<Frame, "sorted"> & { sorted?: Set<number> }) => void;
+
 
 export function* bubbleSort(input: number[]): Generator<Frame> {
   const a = [...input];
