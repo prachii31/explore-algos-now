@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
-const NAV = [
+const NAV: Array<{ to: string; label: string; exact?: boolean }> = [
   { to: "/", label: "Home", exact: true },
   { to: "/sorting", label: "Sorting" },
   { to: "/searching", label: "Searching" },
@@ -20,7 +20,7 @@ const NAV = [
   { to: "/queue", label: "Queue" },
   { to: "/linked-list", label: "Linked List" },
   { to: "/bst", label: "BST" },
-] as const;
+];
 
 function Nav() {
   return (
