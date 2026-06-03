@@ -30,9 +30,9 @@ function Nav() {
         {NAV.map((n) => (
           <Link
             key={n.to}
-            to={n.to}
+            to={n.to as "/"}
             className="av-nav-link"
-            activeOptions={{ exact: n.exact }}
+            activeOptions={{ exact: !!n.exact }}
           >
             {n.label}
           </Link>
