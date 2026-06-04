@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AlgoInfo } from "@/components/AlgoInfo";
 import { QUEUE_INFO } from "@/utils/algoData";
 
+// Route configuration for the /queue page
 export const Route = createFileRoute("/queue")({
   head: () => ({
     meta: [
@@ -14,28 +15,61 @@ export const Route = createFileRoute("/queue")({
 });
 
 function QueuePage() {
+  // The queue is a plain array. Index 0 is the FRONT, last index is the REAR.
   const [queue, setQueue] = useState<number[]>([]);
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
-  const enqueue = () => {
+  // ENQUEUE: add a new value at the rear
+  function enqueue() {
     const v = Number(value);
-    if (!value || Number.isNaN(v)) return;
-    setQueue((q) => [...q, v]); setValue(""); setMsg(`Enqueued ${v}`);
-  };
-  const dequeue = () => {
-    if (!queue.length) return setMsg("Queue is empty");
-    setMsg(`Dequeued ${queue[0]}`); setQueue((q) => q.slice(1));
-  };
-  const showFront = () => setMsg(queue.length ? `Front: ${queue[0]}` : "Queue is empty");
-  const showRear = () => setMsg(queue.length ? `Rear: ${queue[queue.length - 1]}` : "Queue is empty");
-  const clear = () => { setQueue([]); setMsg("Cleared"); };
+    if (value === "" || Number.isNaN(v)) return;
+    setQueue([...queue, v]);
+    setValue("");
+    setMsg(`Enqueued ${v}`);
+  }
+
+  // DEQUEUE: remove the value at the front
+  function dequeue() {
+    if (queue.length === 0) {
+      setMsg("Queue is empty");
+      return;
+    }
+    const front = queue[0];
+    setQueue(queue.slice(1));
+    setMsg(`Dequeued ${front}`);
+  }
+
+  // FRONT: peek at the first element
+  function showFront() {
+    if (queue.length === 0) {
+      setMsg("Queue is empty");
+      return;
+    }
+    setMsg(`Front: ${queue[0]}`);
+  }
+
+  // REAR: peek at the last element
+  function showRear() {
+    if (queue.length === 0) {
+      setMsg("Queue is empty");
+      return;
+    }
+    setMsg(`Rear: ${queue[queue.length - 1]}`);
+  }
+
+  // CLEAR: remove all elements
+  function clear() {
+    setQueue([]);
+    setMsg("Cleared");
+  }
 
   return (
     <div className="av-container">
       <h1 className="av-page-title">🚶 Queue Visualizer</h1>
       <p className="av-page-sub">First In, First Out (FIFO) — enqueue at rear, dequeue from front.</p>
 
+      {/* Controls */}
       <div className="av-panel">
         <div className="av-controls">
           <div className="av-control-group">
@@ -52,6 +86,7 @@ function QueuePage() {
         {msg && <div className="av-msg">{msg}</div>}
       </div>
 
+      {/* Visualization */}
       <div className="av-panel">
         <div style={{ display: "flex", justifyContent: "space-between", color: "var(--av-muted)", fontSize: 13, marginBottom: 6 }}>
           <span>← FRONT</span><span>REAR →</span>
@@ -59,7 +94,10 @@ function QueuePage() {
         <div className="av-queue">
           {queue.length === 0 && <div style={{ color: "var(--av-muted)", margin: "auto" }}>Empty queue</div>}
           {queue.map((v, i) => {
-            const cls = `av-queue-item ${i === 0 ? "front" : ""} ${i === queue.length - 1 ? "rear" : ""}`;
+            // Mark the first and last items so the CSS can highlight them
+            const isFront = i === 0;
+            const isRear = i === queue.length - 1;
+            const cls = `av-queue-item ${isFront ? "front" : ""} ${isRear ? "rear" : ""}`;
             return <div key={i} className={cls}>{v}</div>;
           })}
         </div>
