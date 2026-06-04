@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { AlgoInfo } from "@/components/AlgoInfo";
 import { LL_INFO } from "@/utils/algoData";
 
+// Route configuration for the /linked-list page
 export const Route = createFileRoute("/linked-list")({
   head: () => ({
     meta: [
@@ -10,52 +11,102 @@ export const Route = createFileRoute("/linked-list")({
       { name: "description", content: "Visualize singly linked list operations: insert at head, tail, delete, search." },
     ],
   }),
-  component: LLPage,
+  component: LinkedListPage,
 });
 
-function LLPage() {
+// Helper used inside the search loop to pause between steps
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function LinkedListPage() {
+  // We represent the linked list as a plain array of numbers.
+  // Index 0 is the HEAD and the last index is the TAIL.
   const [list, setList] = useState<number[]>([10, 20, 30]);
-  const [value, setValue] = useState("");
-  const [highlight, setHighlight] = useState<number | null>(null);
-  const [found, setFound] = useState<number | null>(null);
+  const [value, setValue] = useState("");                       // input text
+  const [highlight, setHighlight] = useState<number | null>(null); // node being visited
+  const [found, setFound] = useState<number | null>(null);      // node that matched search
   const [msg, setMsg] = useState<string | null>(null);
-  const busyRef = useRef(false);
+  const [busy, setBusy] = useState(false);                      // true while search is running
 
-  const reset = () => { setHighlight(null); setFound(null); };
+  // Clear highlight/found markers
+  function clearHighlights() {
+    setHighlight(null);
+    setFound(null);
+  }
 
-  const insertHead = () => {
-    const v = Number(value); if (!value || Number.isNaN(v)) return;
-    reset(); setList((l) => [v, ...l]); setValue(""); setMsg(`Inserted ${v} at beginning`);
-  };
-  const insertTail = () => {
-    const v = Number(value); if (!value || Number.isNaN(v)) return;
-    reset(); setList((l) => [...l, v]); setValue(""); setMsg(`Inserted ${v} at end`);
-  };
-  const deleteNode = () => {
-    const v = Number(value); if (!value || Number.isNaN(v)) return;
+  // INSERT AT HEAD: add a new node at the beginning
+  function insertHead() {
+    const v = Number(value);
+    if (value === "" || Number.isNaN(v)) return;
+    clearHighlights();
+    setList([v, ...list]);
+    setValue("");
+    setMsg(`Inserted ${v} at beginning`);
+  }
+
+  // INSERT AT TAIL: add a new node at the end
+  function insertTail() {
+    const v = Number(value);
+    if (value === "" || Number.isNaN(v)) return;
+    clearHighlights();
+    setList([...list, v]);
+    setValue("");
+    setMsg(`Inserted ${v} at end`);
+  }
+
+  // DELETE: remove the first node with the given value
+  function deleteNode() {
+    const v = Number(value);
+    if (value === "" || Number.isNaN(v)) return;
     const idx = list.indexOf(v);
-    if (idx === -1) return setMsg(`${v} not found`);
-    reset(); setList((l) => l.filter((_, i) => i !== idx)); setValue(""); setMsg(`Deleted ${v}`);
-  };
-  const search = async () => {
-    const v = Number(value); if (!value || Number.isNaN(v) || busyRef.current) return;
-    busyRef.current = true; reset(); setMsg(`Searching for ${v}…`);
+    if (idx === -1) {
+      setMsg(`${v} not found`);
+      return;
+    }
+    clearHighlights();
+    const newList = list.filter((_, i) => i !== idx);
+    setList(newList);
+    setValue("");
+    setMsg(`Deleted ${v}`);
+  }
+
+  // SEARCH: walk through the list one node at a time
+  async function search() {
+    const v = Number(value);
+    if (value === "" || Number.isNaN(v) || busy) return;
+
+    setBusy(true);
+    clearHighlights();
+    setMsg(`Searching for ${v}…`);
+
     for (let i = 0; i < list.length; i++) {
+      // Highlight the current node and pause so the user can see it
       setHighlight(i);
-      await new Promise((r) => setTimeout(r, 500));
+      await sleep(500);
+
+      // Compare this node's value with what we're looking for
       if (list[i] === v) {
-        setFound(i); setHighlight(null);
-        setMsg(`Found ${v} at position ${i}`); busyRef.current = false; return;
+        setFound(i);
+        setHighlight(null);
+        setMsg(`Found ${v} at position ${i}`);
+        setBusy(false);
+        return;
       }
     }
-    setHighlight(null); setMsg(`${v} not found`); busyRef.current = false;
-  };
+
+    // Loop finished without finding the value
+    setHighlight(null);
+    setMsg(`${v} not found`);
+    setBusy(false);
+  }
 
   return (
     <div className="av-container">
       <h1 className="av-page-title">🔗 Linked List Visualizer</h1>
       <p className="av-page-sub">Nodes connected by pointers, traversed one link at a time.</p>
 
+      {/* Controls */}
       <div className="av-panel">
         <div className="av-controls">
           <div className="av-control-group">
@@ -71,18 +122,27 @@ function LLPage() {
         {msg && <div className="av-msg">{msg}</div>}
       </div>
 
+      {/* Visualization: nodes connected by arrows, NULL at the end */}
       <div className="av-panel">
         <div className="av-ll">
           {list.length === 0 && <div style={{ color: "var(--av-muted)" }}>Empty list</div>}
           {list.map((v, i) => {
-            const cls = `av-ll-box ${highlight === i ? "highlight" : ""} ${found === i ? "found" : ""}`;
+            const isHighlighted = highlight === i;
+            const isFound = found === i;
+            const cls = `av-ll-box ${isHighlighted ? "highlight" : ""} ${isFound ? "found" : ""}`;
+            const isLast = i === list.length - 1;
             return (
               <div key={i} className="av-ll-node">
                 <div className={cls}>{v}</div>
-                {i < list.length - 1 ? <span className="av-ll-arrow">→</span> : <>
+                {/* Arrow pointing to the next node, or to NULL at the end */}
+                {isLast ? (
+                  <>
+                    <span className="av-ll-arrow">→</span>
+                    <span className="av-ll-null">NULL</span>
+                  </>
+                ) : (
                   <span className="av-ll-arrow">→</span>
-                  <span className="av-ll-null">NULL</span>
-                </>}
+                )}
               </div>
             );
           })}

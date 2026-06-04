@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AlgoInfo } from "@/components/AlgoInfo";
 import { SEARCHING_INFO } from "@/utils/algoData";
 
+// Route configuration for the /searching page
 export const Route = createFileRoute("/searching")({
   head: () => ({
     meta: [
@@ -15,77 +16,164 @@ export const Route = createFileRoute("/searching")({
 
 type Algo = "linear" | "binary";
 
-const randomArray = (n: number) =>
-  Array.from({ length: n }, () => Math.floor(Math.random() * 99) + 1);
+// Generate a random array of size n with numbers from 1 to 99
+function randomArray(n: number): number[] {
+  const arr: number[] = [];
+  for (let i = 0; i < n; i++) {
+    arr.push(Math.floor(Math.random() * 99) + 1);
+  }
+  return arr;
+}
+
+// Small helper so async code can pause between steps
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function SearchingPage() {
+  // ----- State -----
   const [algo, setAlgo] = useState<Algo>("linear");
   const [array, setArray] = useState<number[]>(() => randomArray(12));
   const [customInput, setCustomInput] = useState("");
-  const [target, setTarget] = useState<number>(0);
-  const [speed, setSpeed] = useState(50);
-  const [active, setActive] = useState<number[]>([]);
-  const [found, setFound] = useState<number | null>(null);
+  const [target, setTarget] = useState<number>(0);             // value we are looking for
+  const [speed, setSpeed] = useState(50);                      // animation speed
+  const [activeIndex, setActiveIndex] = useState<number | null>(null); // currently checked index
+  const [foundIndex, setFoundIndex] = useState<number | null>(null);   // position of match
   const [comparisons, setComparisons] = useState(0);
   const [running, setRunning] = useState(false);
+  const [stopRequested, setStopRequested] = useState(false);
   const [msg, setMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
-  const stopRef = useRef(false);
 
+  // Pick a random target the first time the page loads
   useEffect(() => {
-    if (array.length) setTarget(array[Math.floor(Math.random() * array.length)]);
+    if (array.length > 0) {
+      setTarget(array[Math.floor(Math.random() * array.length)]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const reset = () => {
-    stopRef.current = true; setRunning(false);
-    setActive([]); setFound(null); setComparisons(0); setMsg(null);
-  };
+  // Clear all the visualization state
+  function resetVisualization() {
+    setStopRequested(true);
+    setRunning(false);
+    setActiveIndex(null);
+    setFoundIndex(null);
+    setComparisons(0);
+    setMsg(null);
+  }
 
-  const handleRandom = () => { if (!running) { setArray(randomArray(12)); reset(); } };
-  const handleCustom = () => {
-    const parsed = customInput.split(/[\s,]+/).map(Number).filter((x) => !Number.isNaN(x));
-    if (parsed.length >= 2 && parsed.length <= 25) { setArray(parsed); reset(); }
-  };
+  function handleRandom() {
+    if (!running) {
+      setArray(randomArray(12));
+      resetVisualization();
+    }
+  }
 
-  const wait = () => new Promise((r) => setTimeout(r, 610 - speed * 6));
+  function handleCustom() {
+    // Parse comma/space separated numbers from the input box
+    const parts = customInput.split(/[\s,]+/);
+    const numbers: number[] = [];
+    for (const p of parts) {
+      const n = Number(p);
+      if (!Number.isNaN(n)) numbers.push(n);
+    }
+    if (numbers.length >= 2 && numbers.length <= 25) {
+      setArray(numbers);
+      resetVisualization();
+    }
+  }
 
-  const runLinear = async () => {
-    const arr = [...array]; let count = 0;
+  // Delay between two animation steps
+  function stepDelay(): number {
+    return 610 - speed * 6;
+  }
+
+  // ----- Linear Search -----
+  // Check every element from left to right until we find the target.
+  async function runLinearSearch() {
+    const arr = [...array];
+    let count = 0;
+
     for (let i = 0; i < arr.length; i++) {
-      if (stopRef.current) return;
-      setActive([i]); count++; setComparisons(count);
-      await wait();
-      if (arr[i] === target) { setFound(i); setMsg({ text: `Found ${target} at index ${i}!`, type: "success" }); return; }
+      if (stopRequested) return;
+
+      // Highlight the element we are about to check
+      setActiveIndex(i);
+      count++;
+      setComparisons(count);
+      await sleep(stepDelay());
+
+      // Compare current element with target
+      if (arr[i] === target) {
+        setFoundIndex(i);
+        setMsg({ text: `Found ${target} at index ${i}!`, type: "success" });
+        return;
+      }
     }
     setMsg({ text: `${target} not found in array.`, type: "error" });
-  };
+  }
 
-  const runBinary = async () => {
+  // ----- Binary Search -----
+  // Requires a sorted array. We repeatedly look at the middle element and
+  // throw away the half that cannot contain the target.
+  async function runBinarySearch() {
+    // Binary search needs a sorted array, so sort first
     const arr = [...array].sort((a, b) => a - b);
     setArray(arr);
-    let lo = 0, hi = arr.length - 1, count = 0;
-    while (lo <= hi) {
-      if (stopRef.current) return;
-      const mid = Math.floor((lo + hi) / 2);
-      setActive([mid]); count++; setComparisons(count);
-      await wait();
-      if (arr[mid] === target) { setFound(mid); setMsg({ text: `Found ${target} at index ${mid}!`, type: "success" }); return; }
-      if (arr[mid] < target) lo = mid + 1; else hi = mid - 1;
+
+    let low = 0;
+    let high = arr.length - 1;
+    let count = 0;
+
+    while (low <= high) {
+      if (stopRequested) return;
+
+      // Look at the middle element
+      const mid = Math.floor((low + high) / 2);
+      setActiveIndex(mid);
+      count++;
+      setComparisons(count);
+      await sleep(stepDelay());
+
+      if (arr[mid] === target) {
+        // Found it!
+        setFoundIndex(mid);
+        setMsg({ text: `Found ${target} at index ${mid}!`, type: "success" });
+        return;
+      }
+
+      // Decide which half to keep searching
+      if (arr[mid] < target) {
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
     }
     setMsg({ text: `${target} not found in array.`, type: "error" });
-  };
+  }
 
-  const handleStart = async () => {
+  // Start the chosen search
+  async function handleStart() {
     if (running) return;
-    reset(); stopRef.current = false; setRunning(true);
-    if (algo === "linear") await runLinear(); else await runBinary();
-    setRunning(false);
-  };
+    resetVisualization();
+    setStopRequested(false);
+    setRunning(true);
 
-  const classFor = (i: number) => {
-    if (found === i) return "av-box sorted";
-    if (active.includes(i)) return "av-box compare";
+    if (algo === "linear") {
+      await runLinearSearch();
+    } else {
+      await runBinarySearch();
+    }
+
+    setRunning(false);
+  }
+
+  // Decide the CSS class for each box based on what we're showing
+  function classFor(index: number): string {
+    if (foundIndex === index) return "av-box sorted";
+    if (activeIndex === index) return "av-box compare";
     return "av-box";
-  };
+  }
 
   return (
     <div className="av-container">
@@ -105,12 +193,12 @@ function SearchingPage() {
           <div className="av-control-group">
             <label>Target</label>
             <input className="av-input" type="number" value={target} disabled={running}
-              onChange={(e) => setTarget(+e.target.value)} />
+              onChange={(e) => setTarget(Number(e.target.value))} />
           </div>
           <div className="av-control-group">
             <label>Speed: {speed}%</label>
             <input className="av-slider" type="range" min={1} max={100} value={speed}
-              onChange={(e) => setSpeed(+e.target.value)} />
+              onChange={(e) => setSpeed(Number(e.target.value))} />
           </div>
           <div className="av-control-group" style={{ minWidth: 240, flex: 1 }}>
             <label>Custom Array</label>
@@ -125,7 +213,7 @@ function SearchingPage() {
           <button className="av-btn av-btn-green" onClick={handleStart} disabled={running}>
             {running ? "Searching…" : "Search"}
           </button>
-          <button className="av-btn av-btn-red" onClick={reset}>Reset</button>
+          <button className="av-btn av-btn-red" onClick={resetVisualization}>Reset</button>
         </div>
         <div className="av-stats">
           <div className="av-stat">Comparisons<strong>{comparisons}</strong></div>
@@ -135,8 +223,8 @@ function SearchingPage() {
 
       <div className="av-panel">
         <div className="av-boxes">
-          {array.map((v, i) => (
-            <div key={i} className={classFor(i)}>{v}</div>
+          {array.map((value, index) => (
+            <div key={index} className={classFor(index)}>{value}</div>
           ))}
         </div>
       </div>
