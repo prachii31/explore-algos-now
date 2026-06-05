@@ -340,3 +340,15 @@
   .av-box { min-width: 36px; height: 40px; font-size: 13px; padding: 0 6px; }
   .av-control-group { min-width: 130px; flex: 1; }
 }
+
+/* Merge Sort Recursion Tree */
+.mt-section { padding: 12px; background: var(--av-card-2); border-radius: 8px; }
+.mt-label { font-size: 13px; color: #9ca3af; margin-bottom: 10px; font-weight: 600; }
+.mt-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.mt-node {
+  padding: 6px 12px; border-radius: 6px; font-family: "SF Mono", Menlo, monospace;
+  font-size: 13px; color: #e5e7eb; border: 1px solid var(--av-border);
+  animation: avSlideIn 0.3s ease;
+}
+.mt-split { background: rgba(37, 99, 235, 0.15); border-color: var(--av-blue); }
+.mt-merge { background: rgba(16, 185, 129, 0.15); border-color: var(--av-green); }
