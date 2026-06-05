@@ -179,6 +179,11 @@ function SortingPage() {
         </div>
       </div>
 
+      {/* Merge Sort recursion tree (only when merge sort is selected) */}
+      {algo === "merge" && (
+        <MergeTree array={array} speed={speed} running={running} />
+      )}
+
       {/* Educational info card */}
       <AlgoInfo {...SORTING_INFO[algo]} />
     </div>
