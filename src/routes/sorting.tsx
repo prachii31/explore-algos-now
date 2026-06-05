@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SORTERS, type Frame } from "@/utils/sortAlgos";
 import { AlgoInfo } from "@/components/AlgoInfo";
+import { MergeTree } from "@/components/MergeTree";
 import { SORTING_INFO } from "@/utils/algoData";
 
 // Route configuration for the /sorting page
