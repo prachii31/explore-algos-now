@@ -177,6 +177,16 @@ function SortingPage() {
             <div key={index} className={classFor(index)}>{value}</div>
           ))}
         </div>
+
+        {/* Current Step explanation panel */}
+        <div className="av-step">
+          <div className="av-step-label">Current Step</div>
+          <div className="av-step-text">{frame.message || "Ready to sort"}</div>
+        </div>
+        <div style={{ display: "none" }}>{/* keep structure */}{[].map(() => (
+            <div></div>
+          ))}
+        </div>
       </div>
 
       {/* Merge Sort recursion tree (only when merge sort is selected) */}
