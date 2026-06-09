@@ -352,3 +352,28 @@
 }
 .mt-split { background: rgba(37, 99, 235, 0.15); border-color: var(--av-blue); }
 .mt-merge { background: rgba(16, 185, 129, 0.15); border-color: var(--av-green); }
+
+/* Current Step explanation panel */
+.av-step {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--av-card-2);
+  border: 1px solid var(--av-border);
+  border-left: 4px solid var(--av-blue);
+  border-radius: 8px;
+  animation: avSlideIn 0.25s ease;
+}
+.av-step-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+.av-step-text {
+  font-size: 15px;
+  color: #f3f4f6;
+  font-weight: 500;
+  line-height: 1.5;
+}
