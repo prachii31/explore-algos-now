@@ -1,18 +1,14 @@
 // =====================================================================
 // SORTING ALGORITHMS - AlgoVision
 // ---------------------------------------------------------------------
-// This file contains 5 classic sorting algorithms written in a simple,
-// beginner-friendly style. Each algorithm produces a list of "frames".
-// A frame is a snapshot of the array at one moment, plus information
-// about which boxes the UI should highlight (compare / swap / pivot)
-// and the running totals of comparisons and swaps.
+// Each algorithm produces an array of "frames" (snapshots) that the
+// Sorting page plays one after another to create an animation.
 //
-// The Sorting page plays these frames one after another to create the
-// animation. We use plain for-loops and recursion (no generators, no
-// fancy patterns) so the code is easy to read and explain in a viva.
+// Every frame can also carry a human-readable `message` that the UI
+// shows in the "Current Step" panel so students can follow along.
 // =====================================================================
 
-// Shape of one animation frame. The UI reads these fields to draw boxes.
+// Shape of one animation frame.
 export interface Frame {
   array: number[];      // current state of the array
   compare?: number[];   // indices currently being compared (yellow)
@@ -21,17 +17,21 @@ export interface Frame {
   sorted: Set<number>;  // indices already in their final sorted position
   comparisons: number;  // total comparisons so far
   swaps: number;        // total swaps / moves so far
+  message?: string;     // explanation of what is happening in this frame
 }
 
 // Save a snapshot of the array as a new frame.
-// We copy the array and the sorted-set so future changes don't alter
-// frames we already pushed.
 function saveFrame(
   array: number[],
   sorted: Set<number>,
   comparisons: number,
   swaps: number,
-  highlight: { compare?: number[]; current?: number[]; pivot?: number } = {}
+  highlight: {
+    compare?: number[];
+    current?: number[];
+    pivot?: number;
+    message?: string;
+  } = {}
 ): Frame {
   return {
     array: [...array],
@@ -42,7 +42,7 @@ function saveFrame(
   };
 }
 
-// Swap two elements in the array (used by most sorts).
+// Swap two elements in the array.
 function swap(array: number[], i: number, j: number): void {
   const temp = array[i];
   array[i] = array[j];
@@ -53,51 +53,55 @@ function swap(array: number[], i: number, j: number): void {
 // ---------------------------------------------------------------------
 // 1) BUBBLE SORT
 // ---------------------------------------------------------------------
-// Idea: walk through the array and swap any two neighbours that are in
-// the wrong order. After each full pass, the largest remaining number
-// "bubbles up" to the end. Repeat until the array is sorted.
-// Time:  O(n^2)   Space: O(1)
-// ---------------------------------------------------------------------
 export function bubbleSort(input: number[]): Frame[] {
-  const array = [...input];      // copy so we don't change the caller's array
+  const array = [...input];
   const frames: Frame[] = [];
   const sorted = new Set<number>();
   let comparisons = 0;
   let swaps = 0;
 
-  for (let i = 0; i < array.length; i++) {
-    // Inner loop: each pass pushes the largest value to position (n-i-1)
-    for (let j = 0; j < array.length - i - 1; j++) {
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Starting Bubble Sort" }));
 
+  for (let i = 0; i < array.length; i++) {
+    for (let j = 0; j < array.length - i - 1; j++) {
       // Compare two neighbours
       comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, { compare: [j, j + 1] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        compare: [j, j + 1],
+        message: `Comparing ${array[j]} and ${array[j + 1]}`,
+      }));
 
-      // If they are in the wrong order, swap them
+      // Swap if they are in the wrong order
       if (array[j] > array[j + 1]) {
+        const a = array[j];
+        const b = array[j + 1];
         swap(array, j, j + 1);
         swaps++;
-        frames.push(saveFrame(array, sorted, comparisons, swaps, { current: [j, j + 1] }));
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          current: [j, j + 1],
+          message: `Swapping ${a} and ${b}`,
+        }));
       }
     }
 
-    // The last element of this pass is now in its final spot
-    sorted.add(array.length - i - 1);
+    // Largest of this pass is now in its final spot
+    const finalIdx = array.length - i - 1;
+    sorted.add(finalIdx);
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      message: `${array[finalIdx]} is now in its final sorted position`,
+    }));
   }
 
-  // The first element is also sorted once everything else is in place
   sorted.add(0);
-  frames.push(saveFrame(array, sorted, comparisons, swaps));
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Array is fully sorted ✅" }));
   return frames;
 }
 
 
 // ---------------------------------------------------------------------
 // 2) SELECTION SORT
-// ---------------------------------------------------------------------
-// Idea: find the smallest number in the unsorted part of the array and
-// put it at the front. Then look at the rest and repeat.
-// Time:  O(n^2)   Space: O(1)
 // ---------------------------------------------------------------------
 export function selectionSort(input: number[]): Frame[] {
   const array = [...input];
@@ -106,32 +110,52 @@ export function selectionSort(input: number[]): Frame[] {
   let comparisons = 0;
   let swaps = 0;
 
-  for (let i = 0; i < array.length; i++) {
-    // Assume the current position holds the smallest value
-    let minIndex = i;
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Starting Selection Sort" }));
 
-    // Look through the rest of the array for something smaller
+  for (let i = 0; i < array.length; i++) {
+    let minIndex = i;
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      current: [i],
+      message: `Searching for the minimum element from index ${i}`,
+    }));
+
     for (let j = i + 1; j < array.length; j++) {
       comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps,
-        { compare: [minIndex, j], current: [i] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        compare: [minIndex, j],
+        current: [i],
+        message: `Comparing ${array[j]} with current minimum ${array[minIndex]}`,
+      }));
 
       if (array[j] < array[minIndex]) {
-        minIndex = j;  // found a new minimum
+        minIndex = j;
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          compare: [minIndex],
+          current: [i],
+          message: `New minimum found: ${array[minIndex]}`,
+        }));
       }
     }
 
-    // Put the smallest found value into position i
     if (minIndex !== i) {
+      const minVal = array[minIndex];
       swap(array, i, minIndex);
       swaps++;
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        current: [i, minIndex],
+        message: `Placing ${minVal} into its final position`,
+      }));
     }
 
-    // Position i is now in its final place
     sorted.add(i);
-    frames.push(saveFrame(array, sorted, comparisons, swaps));
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      message: `${array[i]} is now in its final sorted position`,
+    }));
   }
 
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Array is fully sorted ✅" }));
   return frames;
 }
 
@@ -139,53 +163,60 @@ export function selectionSort(input: number[]): Frame[] {
 // ---------------------------------------------------------------------
 // 3) INSERTION SORT
 // ---------------------------------------------------------------------
-// Idea: works like sorting playing cards in your hand. Take the next
-// card and slide it left until it sits in the correct spot among the
-// cards you have already sorted.
-// Time:  O(n^2)   Space: O(1)
-// ---------------------------------------------------------------------
 export function insertionSort(input: number[]): Frame[] {
   const array = [...input];
   const frames: Frame[] = [];
-  const sorted = new Set<number>([0]);  // a single element is already sorted
+  const sorted = new Set<number>([0]);
   let comparisons = 0;
   let swaps = 0;
 
-  for (let i = 1; i < array.length; i++) {
-    let j = i;
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Starting Insertion Sort" }));
 
-    // Keep shifting the element left while it is smaller than its neighbour
+  for (let i = 1; i < array.length; i++) {
+    const inserting = array[i];
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      current: [i],
+      message: `Inserting ${inserting} into the sorted portion`,
+    }));
+
+    let j = i;
     while (j > 0) {
       comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, { compare: [j - 1, j] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        compare: [j - 1, j],
+        message: `Comparing ${inserting} with ${array[j - 1]}`,
+      }));
 
       if (array[j - 1] > array[j]) {
+        const moved = array[j - 1];
         swap(array, j - 1, j);
         swaps++;
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          current: [j - 1, j],
+          message: `Shifting ${moved} to the right`,
+        }));
         j--;
       } else {
-        break;  // correct position found, stop shifting
+        break;
       }
     }
 
     sorted.add(i);
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      message: `Inserted ${inserting} into its correct position`,
+    }));
   }
 
-  // Mark all indices as sorted for the final frame
   for (let k = 0; k < array.length; k++) sorted.add(k);
-  frames.push(saveFrame(array, sorted, comparisons, swaps));
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Array is fully sorted ✅" }));
   return frames;
 }
 
 
 // ---------------------------------------------------------------------
 // 4) MERGE SORT
-// ---------------------------------------------------------------------
-// Idea (divide and conquer):
-//   1. Split the array in half.
-//   2. Sort each half (recursion).
-//   3. Merge the two sorted halves into one sorted array.
-// Time:  O(n log n)   Space: O(n)
 // ---------------------------------------------------------------------
 export function mergeSort(input: number[]): Frame[] {
   const array = [...input];
@@ -194,80 +225,91 @@ export function mergeSort(input: number[]): Frame[] {
   let comparisons = 0;
   let swaps = 0;
 
-  // Merge two already-sorted parts: array[left..mid] and array[mid+1..right]
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Starting Merge Sort" }));
+
   function merge(left: number, mid: number, right: number): void {
     const leftPart = array.slice(left, mid + 1);
     const rightPart = array.slice(mid + 1, right + 1);
 
-    let i = 0;      // pointer in leftPart
-    let j = 0;      // pointer in rightPart
-    let k = left;   // pointer in the real array where we write
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      message: `Merging [${leftPart.join(", ")}] and [${rightPart.join(", ")}]`,
+    }));
 
-    // Pick the smaller front element each time and place it back
+    let i = 0, j = 0, k = left;
+
     while (i < leftPart.length && j < rightPart.length) {
       comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps,
-        { compare: [left + i, mid + 1 + j] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        compare: [left + i, mid + 1 + j],
+        message: `Comparing ${leftPart[i]} and ${rightPart[j]}`,
+      }));
 
       if (leftPart[i] <= rightPart[j]) {
         array[k] = leftPart[i];
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          current: [k],
+          message: `Taking ${leftPart[i]} from the left half`,
+        }));
         i++;
       } else {
         array[k] = rightPart[j];
+        swaps++;
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          current: [k],
+          message: `Taking ${rightPart[j]} from the right half`,
+        }));
         j++;
-        swaps++;   // we count a "move from the right side" as a swap
       }
       k++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, { current: [k - 1] }));
     }
 
-    // If anything is left in the left half, copy it over
     while (i < leftPart.length) {
       array[k] = leftPart[i];
-      i++;
-      k++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, { current: [k - 1] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        current: [k],
+        message: `Copying remaining ${leftPart[i]} from the left half`,
+      }));
+      i++; k++;
     }
 
-    // If anything is left in the right half, copy it over
     while (j < rightPart.length) {
       array[k] = rightPart[j];
-      j++;
-      k++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, { current: [k - 1] }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        current: [k],
+        message: `Copying remaining ${rightPart[j]} from the right half`,
+      }));
+      j++; k++;
     }
+
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      message: `Merged subarray: [${array.slice(left, right + 1).join(", ")}]`,
+    }));
   }
 
-  // Recursive function that keeps splitting until the parts are size 1,
-  // then merges them back together in sorted order.
   function sort(left: number, right: number): void {
     if (left < right) {
       const mid = Math.floor((left + right) / 2);
-      sort(left, mid);          // sort left half
-      sort(mid + 1, right);     // sort right half
-      merge(left, mid, right);  // combine them
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        message: `Splitting [${array.slice(left, right + 1).join(", ")}] into left and right halves`,
+      }));
+      sort(left, mid);
+      sort(mid + 1, right);
+      merge(left, mid, right);
     }
   }
 
   sort(0, array.length - 1);
 
-  // Final frame: everything is sorted
   for (let k = 0; k < array.length; k++) sorted.add(k);
-  frames.push(saveFrame(array, sorted, comparisons, swaps));
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Array is fully sorted ✅" }));
   return frames;
 }
 
 
 // ---------------------------------------------------------------------
 // 5) QUICK SORT
-// ---------------------------------------------------------------------
-// Idea (divide and conquer):
-//   1. Pick a "pivot" element (we use the last element).
-//   2. Move all smaller numbers to the left of the pivot and all larger
-//      numbers to the right. This is called "partitioning".
-//   3. The pivot is now in its final position.
-//   4. Recursively quick-sort the left side and the right side.
-// Time:  O(n log n) average, O(n^2) worst   Space: O(log n)
 // ---------------------------------------------------------------------
 export function quickSort(input: number[]): Frame[] {
   const array = [...input];
@@ -276,59 +318,69 @@ export function quickSort(input: number[]): Frame[] {
   let comparisons = 0;
   let swaps = 0;
 
-  // Rearranges array[low..high] around a pivot and returns the pivot's
-  // final index. Everything left of that index is <= pivot, everything
-  // right is > pivot.
-  function partition(low: number, high: number): number {
-    const pivotValue = array[high];  // choose the last element as pivot
-    let i = low - 1;                 // boundary of the "smaller" region
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Starting Quick Sort" }));
 
-    // Walk through the range and move smaller items to the left side
+  function partition(low: number, high: number): number {
+    const pivotValue = array[high];
+    let i = low - 1;
+
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      pivot: high,
+      message: `Selected pivot ${pivotValue}`,
+    }));
+
     for (let j = low; j < high; j++) {
       comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps,
-        { compare: [j], pivot: high }));
+      frames.push(saveFrame(array, sorted, comparisons, swaps, {
+        compare: [j],
+        pivot: high,
+        message: `Comparing ${array[j]} with pivot ${pivotValue}`,
+      }));
 
       if (array[j] < pivotValue) {
         i++;
+        const moved = array[j];
         swap(array, i, j);
         swaps++;
-        frames.push(saveFrame(array, sorted, comparisons, swaps,
-          { current: [i, j], pivot: high }));
+        frames.push(saveFrame(array, sorted, comparisons, swaps, {
+          current: [i, j],
+          pivot: high,
+          message: `Moving ${moved} to the left partition`,
+        }));
       }
     }
 
-    // Place the pivot just after the smaller region — its final spot
     swap(array, i + 1, high);
     swaps++;
+    frames.push(saveFrame(array, sorted, comparisons, swaps, {
+      current: [i + 1],
+      message: `Placing pivot ${pivotValue} into its final position`,
+    }));
     return i + 1;
   }
 
-  // Recursive function: partition, then sort the two sides
   function quick(low: number, high: number): void {
     if (low < high) {
       const pivotIndex = partition(low, high);
-      sorted.add(pivotIndex);     // pivot is now in its final position
-      quick(low, pivotIndex - 1); // sort the left side
-      quick(pivotIndex + 1, high);// sort the right side
+      sorted.add(pivotIndex);
+      quick(low, pivotIndex - 1);
+      quick(pivotIndex + 1, high);
     } else if (low === high) {
-      sorted.add(low);            // a single element is already sorted
+      sorted.add(low);
     }
   }
 
   quick(0, array.length - 1);
 
-  // Final frame: mark all indices as sorted
   for (let k = 0; k < array.length; k++) sorted.add(k);
-  frames.push(saveFrame(array, sorted, comparisons, swaps));
+  frames.push(saveFrame(array, sorted, comparisons, swaps,
+    { message: "Array is fully sorted ✅" }));
   return frames;
 }
 
 
-// ---------------------------------------------------------------------
-// Map of algorithm name -> function. The Sorting page uses this to
-// pick which algorithm to run based on the dropdown selection.
-// ---------------------------------------------------------------------
+// Map of algorithm name -> function.
 export const SORTERS = {
   bubble: bubbleSort,
   selection: selectionSort,
