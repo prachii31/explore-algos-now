@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SORTERS, type Frame } from "@/utils/sortAlgos";
 import { AlgoInfo } from "@/components/AlgoInfo";
 import { MergeTree } from "@/components/MergeTree";
@@ -33,16 +33,35 @@ function emptyFrame(array: number[]): Frame {
   return { array, sorted: new Set(), comparisons: 0, swaps: 0 };
 }
 
+// Convert the speed slider (1-100) into a delay in milliseconds.
+// We use an exponential curve so the slider feels smooth across its range:
+//  - speed   1  -> ~600ms  (very slow, easy to follow)
+//  - speed  50  -> ~60ms   (medium)
+//  - speed  99  -> ~6ms    (very fast)
+//  - speed 100  -> 0       (instant - render only the final frame)
+function speedToDelay(speed: number): number {
+  if (speed >= 100) return 0; // Instant sort mode
+  return Math.round(600 * Math.pow(0.05, (speed - 1) / 99));
+}
+
 function SortingPage() {
   // ----- State -----
-  const [algo, setAlgo] = useState<AlgoKey>("bubble");        // chosen algorithm
-  const [size, setSize] = useState(15);                       // array size
-  const [speed, setSpeed] = useState(50);                     // animation speed (1-100)
+  const [algo, setAlgo] = useState<AlgoKey>("bubble");
+  const [size, setSize] = useState(15);
+  const [speed, setSpeed] = useState(50);
   const [array, setArray] = useState<number[]>(() => randomArray(15));
-  const [customInput, setCustomInput] = useState("");         // text in the custom array input
+  const [customInput, setCustomInput] = useState("");
   const [frame, setFrame] = useState<Frame>(() => emptyFrame(array));
-  const [running, setRunning] = useState(false);              // is the animation playing?
-  const [stopRequested, setStopRequested] = useState(false);  // signal to stop the animation
+  const [running, setRunning] = useState(false);
+
+  // ----- Refs (avoid stale closures inside the async animation loop) -----
+  const stopRef = useRef(false);   // set to true to cancel the running animation
+  const speedRef = useRef(speed);  // live speed value the loop reads every frame
+
+  // Keep the speed ref in sync so the running loop reacts immediately to slider changes
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
 
   // Whenever the underlying array changes, reset the displayed frame
   useEffect(() => {
@@ -51,20 +70,16 @@ function SortingPage() {
 
   // ----- Event handlers -----
 
-  // Change the array size (and generate a new random array)
   function handleSize(newSize: number) {
     setSize(newSize);
     if (!running) setArray(randomArray(newSize));
   }
 
-  // Generate a new random array
   function handleRandom() {
     if (!running) setArray(randomArray(size));
   }
 
-  // Use the numbers typed into the custom array input
   function handleCustom() {
-    // Split on spaces or commas, convert to numbers, drop invalid entries
     const parts = customInput.split(/[\s,]+/);
     const numbers: number[] = [];
     for (const p of parts) {
@@ -77,37 +92,55 @@ function SortingPage() {
     }
   }
 
-  // Stop any running animation and reset stats
+  // Reset: immediately cancel the animation via the ref and clear the frame.
   function handleReset() {
-    setStopRequested(true);
+    stopRef.current = true;
     setRunning(false);
     setFrame(emptyFrame(array));
   }
 
-  // Start sorting: ask the chosen algorithm for steps, then play them
+  // Sleep helper that wakes up early if the user resets.
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async function handleStart() {
     if (running) return;
-    setStopRequested(false);
+    stopRef.current = false;
     setRunning(true);
 
-    // Generate all the steps up-front (simple to understand)
+    // Generate every step up-front
     const steps = SORTERS[algo]([...array]);
 
-    // Higher speed -> smaller delay between frames
-    const delay = 510 - speed * 5;
+    // Instant Sort: skip the animation and jump to the last frame
+    if (speedRef.current >= 100) {
+      setFrame(steps[steps.length - 1]);
+      setRunning(false);
+      return;
+    }
 
+    // Animation loop. We use the ref for cancellation so Reset works instantly,
+    // and read speedRef each iteration so slider changes apply mid-animation.
     for (let i = 0; i < steps.length; i++) {
-      // The user clicked Reset, so stop the loop
-      if (stopRequested) break;
+      if (stopRef.current) break;
+
       setFrame(steps[i]);
-      // Wait before showing the next frame
-      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      // At very high speeds, skip the sleep entirely on most frames so React
+      // is not overwhelmed by tiny timeouts. We still yield occasionally.
+      const delay = speedToDelay(speedRef.current);
+      if (delay <= 0) {
+        // Yield to the browser every ~16 frames so the UI stays responsive
+        if (i % 16 === 0) await sleep(0);
+        continue;
+      }
+      await sleep(delay);
     }
 
     setRunning(false);
   }
 
-  // Decide which CSS class to use for each box based on the current frame
+  // CSS class for each box based on the current frame
   function classFor(index: number): string {
     if (frame.sorted.has(index)) return "av-box sorted";
     if (frame.current && frame.current.includes(index)) return "av-box current";
@@ -141,7 +174,7 @@ function SortingPage() {
               disabled={running} onChange={(e) => handleSize(Number(e.target.value))} />
           </div>
           <div className="av-control-group">
-            <label>Speed: {speed}%</label>
+            <label>Speed: {speed === 100 ? "Instant" : `${speed}%`}</label>
             <input className="av-slider" type="range" min={1} max={100} value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))} />
           </div>
@@ -158,7 +191,7 @@ function SortingPage() {
           <button className="av-btn av-btn-ghost" onClick={handleCustom} disabled={running}>Use Array</button>
           <button className="av-btn av-btn-ghost" onClick={handleRandom} disabled={running}>Generate Random Array</button>
           <button className="av-btn av-btn-green" onClick={handleStart} disabled={running}>
-            {running ? "Sorting…" : "Start Sorting"}
+            {running ? "Sorting…" : speed === 100 ? "Instant Sort" : "Start Sorting"}
           </button>
           <button className="av-btn av-btn-red" onClick={handleReset}>Reset</button>
         </div>
