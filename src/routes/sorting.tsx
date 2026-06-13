@@ -149,6 +149,15 @@ function SortingPage() {
     return "av-box";
   }
 
+  // Small label shown under each box (e.g. "0 (sorted)")
+  function labelFor(index: number): string {
+    if (frame.sorted.has(index)) return `${index} (sorted)`;
+    if (frame.current && frame.current.includes(index)) return `${index} (current)`;
+    if (frame.compare && frame.compare.includes(index)) return `${index} (compare)`;
+    if (frame.pivot === index) return `${index} (pivot)`;
+    return `${index}`;
+  }
+
   return (
     <div className="av-container">
       <h1 className="av-page-title">📊 Sorting Algorithms</h1>
@@ -205,15 +214,24 @@ function SortingPage() {
 
       {/* The boxes that visualize the array */}
       <div className="av-panel">
+        <h2 className="av-section-title">Array Visualization</h2>
         <div className="av-boxes">
           {frame.array.map((value, index) => (
-            <div key={index} className={classFor(index)}>{value}</div>
+            <div key={index} className="av-box-wrap">
+              <div className={classFor(index)}>{value}</div>
+              <div className="av-box-label">{labelFor(index)}</div>
+            </div>
           ))}
         </div>
 
         {/* Current Step explanation panel */}
         <div className="av-step">
           <div className="av-step-label">Current Step</div>
+          <div className="av-legend">
+            <span className="av-legend-item"><span className="av-dot current" /> Current element being inserted</span>
+            <span className="av-legend-item"><span className="av-dot compare" /> Element being compared</span>
+            <span className="av-legend-item"><span className="av-dot sorted" /> Sorted portion</span>
+          </div>
           <div className="av-step-text">{frame.message || "Ready to sort"}</div>
         </div>
       </div>
