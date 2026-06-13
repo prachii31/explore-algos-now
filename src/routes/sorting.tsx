@@ -149,6 +149,15 @@ function SortingPage() {
     return "av-box";
   }
 
+  // Small label shown under each box (e.g. "0 (sorted)")
+  function labelFor(index: number): string {
+    if (frame.sorted.has(index)) return `${index} (sorted)`;
+    if (frame.current && frame.current.includes(index)) return `${index} (current)`;
+    if (frame.compare && frame.compare.includes(index)) return `${index} (compare)`;
+    if (frame.pivot === index) return `${index} (pivot)`;
+    return `${index}`;
+  }
+
   return (
     <div className="av-container">
       <h1 className="av-page-title">📊 Sorting Algorithms</h1>
