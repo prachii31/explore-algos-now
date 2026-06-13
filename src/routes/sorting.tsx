@@ -35,13 +35,13 @@ function emptyFrame(array: number[]): Frame {
 
 // Convert the speed slider (1-100) into a delay in milliseconds.
 // We use an exponential curve so the slider feels smooth across its range:
-//  - speed   1  -> ~600ms  (very slow, easy to follow)
-//  - speed  50  -> ~60ms   (medium)
-//  - speed  99  -> ~6ms    (very fast)
-//  - speed 100  -> 0       (instant - render only the final frame)
+//  - speed   1  -> ~1500ms (very slow, easy to follow)
+//  - speed  50  -> ~150ms  (medium)
+//  - speed  99  -> ~15ms   (very fast)
+//  - speed 100  -> 0        (instant - render only the final frame)
 function speedToDelay(speed: number): number {
   if (speed >= 100) return 0; // Instant sort mode
-  return Math.round(600 * Math.pow(0.05, (speed - 1) / 99));
+  return Math.round(1500 * Math.pow(0.05, (speed - 1) / 99));
 }
 
 function SortingPage() {
