@@ -376,4 +376,25 @@
   color: #f3f4f6;
   font-weight: 500;
   line-height: 1.5;
+  background: var(--av-card);
+  border: 1px solid var(--av-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+  margin-top: 10px;
 }
+
+.av-section-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; }
+
+.av-box-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.av-box-label { font-size: 12px; color: var(--av-muted); }
+
+.av-legend {
+  display: flex; flex-wrap: wrap; gap: 18px; justify-content: center;
+  margin: 8px 0 4px; font-size: 13px; color: #d1d5db;
+}
+.av-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.av-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.av-dot.current { background: var(--av-orange); }
+.av-dot.compare { background: var(--av-red); }
+.av-dot.sorted { background: var(--av-green); }
