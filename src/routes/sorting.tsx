@@ -38,9 +38,9 @@ function SortingPage() {
   const [algo, setAlgo] = useState<AlgoKey>("bubble");
   const [size, setSize] = useState(15);
   const [speed, setSpeed] = useState(50);
-  const [array, setArray] = useState<number[]>(() => randomArray(15));
+  const [array, setArray] = useState<number[]>([]);
   const [customInput, setCustomInput] = useState("");
-  const [frame, setFrame] = useState<Frame>(() => emptyFrame(array));
+  const [frame, setFrame] = useState<Frame>(() => emptyFrame([]));
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -49,15 +49,23 @@ function SortingPage() {
   const pauseRef = useRef(false);
   const speedRef = useRef(speed);
   const logsRef = useRef<HTMLDivElement>(null);
+  const runningRef = useRef(false);
 
   useEffect(() => {
     speedRef.current = speed;
   }, [speed]);
 
+  // Generate the initial array on the client only (avoids SSR hydration mismatch)
   useEffect(() => {
+    setArray(randomArray(15));
+  }, []);
+
+  useEffect(() => {
+    if (runningRef.current) return; // don't clobber the live animation frame
     setFrame(emptyFrame(array));
     setLogs([]);
   }, [array]);
+
 
   // Auto-scroll log panel to top whenever a new log is added (newest is at top)
   useEffect(() => {
