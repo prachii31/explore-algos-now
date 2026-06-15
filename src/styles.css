@@ -398,3 +398,51 @@
 .av-dot.current { background: var(--av-orange); }
 .av-dot.compare { background: var(--av-red); }
 .av-dot.sorted { background: var(--av-green); }
+
+/* Log Tracer panel */
+.av-log-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.av-log-count {
+  font-size: 12px; color: var(--av-muted);
+  background: var(--av-card); border: 1px solid var(--av-border);
+  padding: 4px 10px; border-radius: 999px;
+}
+.av-log-panel {
+  background: #0b1220;
+  border: 1px solid var(--av-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  scroll-behavior: smooth;
+}
+.av-log-empty {
+  color: var(--av-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 18px 0;
+}
+.av-log-line {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #d1d5db;
+  border-left: 2px solid transparent;
+  animation: avSlideIn 0.2s ease;
+}
+.av-log-line.is-latest {
+  background: rgba(37, 99, 235, 0.12);
+  border-left-color: var(--av-blue);
+  color: #f3f4f6;
+}
+.av-log-index {
+  color: var(--av-muted);
+  font-size: 11px;
+  min-width: 36px;
+}
+.av-log-text { flex: 1; word-break: break-word; }
