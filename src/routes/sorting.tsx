@@ -5,7 +5,6 @@ import { AlgoInfo } from "@/components/AlgoInfo";
 import { MergeTree } from "@/components/MergeTree";
 import { SORTING_INFO } from "@/utils/algoData";
 
-// Route configuration for the /sorting page
 export const Route = createFileRoute("/sorting")({
   head: () => ({
     meta: [
@@ -16,10 +15,8 @@ export const Route = createFileRoute("/sorting")({
   component: SortingPage,
 });
 
-// The list of algorithm keys our SORTERS map supports.
 type AlgoKey = "bubble" | "selection" | "insertion" | "merge" | "quick";
 
-// Generate a random array of size n with values from 1 to 99
 function randomArray(n: number): number[] {
   const arr: number[] = [];
   for (let i = 0; i < n; i++) {
@@ -28,24 +25,16 @@ function randomArray(n: number): number[] {
   return arr;
 }
 
-// Empty frame used when we reset the visualization
 function emptyFrame(array: number[]): Frame {
   return { array, sorted: new Set(), comparisons: 0, swaps: 0 };
 }
 
-// Convert the speed slider (1-100) into a delay in milliseconds.
-// We use an exponential curve so the slider feels smooth across its range:
-//  - speed   1  -> ~1500ms (very slow, easy to follow)
-//  - speed  50  -> ~150ms  (medium)
-//  - speed  99  -> ~15ms   (very fast)
-//  - speed 100  -> 0        (instant - render only the final frame)
 function speedToDelay(speed: number): number {
-  if (speed >= 100) return 0; // Instant sort mode
+  if (speed >= 100) return 0;
   return Math.round(1500 * Math.pow(0.05, (speed - 1) / 99));
 }
 
 function SortingPage() {
-  // ----- State -----
   const [algo, setAlgo] = useState<AlgoKey>("bubble");
   const [size, setSize] = useState(15);
   const [speed, setSpeed] = useState(50);
@@ -53,22 +42,27 @@ function SortingPage() {
   const [customInput, setCustomInput] = useState("");
   const [frame, setFrame] = useState<Frame>(() => emptyFrame(array));
   const [running, setRunning] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
 
-  // ----- Refs (avoid stale closures inside the async animation loop) -----
-  const stopRef = useRef(false);   // set to true to cancel the running animation
-  const speedRef = useRef(speed);  // live speed value the loop reads every frame
+  const stopRef = useRef(false);
+  const pauseRef = useRef(false);
+  const speedRef = useRef(speed);
+  const logsRef = useRef<HTMLDivElement>(null);
 
-  // Keep the speed ref in sync so the running loop reacts immediately to slider changes
   useEffect(() => {
     speedRef.current = speed;
   }, [speed]);
 
-  // Whenever the underlying array changes, reset the displayed frame
   useEffect(() => {
     setFrame(emptyFrame(array));
+    setLogs([]);
   }, [array]);
 
-  // ----- Event handlers -----
+  // Auto-scroll log panel to top whenever a new log is added (newest is at top)
+  useEffect(() => {
+    if (logsRef.current) logsRef.current.scrollTop = 0;
+  }, [logs]);
 
   function handleSize(newSize: number) {
     setSize(newSize);
@@ -92,45 +86,72 @@ function SortingPage() {
     }
   }
 
-  // Reset: immediately cancel the animation via the ref and clear the frame.
   function handleReset() {
     stopRef.current = true;
+    pauseRef.current = false;
     setRunning(false);
+    setPaused(false);
     setFrame(emptyFrame(array));
+    setLogs([]);
   }
 
-  // Sleep helper that wakes up early if the user resets.
+  function handlePause() {
+    if (!running || paused) return;
+    pauseRef.current = true;
+    setPaused(true);
+  }
+
+  function handleResume() {
+    if (!paused) return;
+    pauseRef.current = false;
+    setPaused(false);
+  }
+
   function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function pushLog(msg: string) {
+    setLogs((prev) => {
+      if (prev[0] === msg) return prev;
+      const next = [msg, ...prev];
+      if (next.length > 30) next.length = 30;
+      return next;
+    });
   }
 
   async function handleStart() {
     if (running) return;
     stopRef.current = false;
+    pauseRef.current = false;
+    setPaused(false);
     setRunning(true);
+    setLogs([]);
 
-    // Generate every step up-front
     const steps = SORTERS[algo]([...array]);
 
-    // Instant Sort: skip the animation and jump to the last frame
     if (speedRef.current >= 100) {
       setFrame(steps[steps.length - 1]);
+      pushLog("Sort completed (instant)");
       setRunning(false);
       return;
     }
 
-    // Animation loop. We use the ref for cancellation so Reset works instantly,
-    // and read speedRef each iteration so slider changes apply mid-animation.
     for (let i = 0; i < steps.length; i++) {
       if (stopRef.current) break;
 
-      setFrame(steps[i]);
+      // Honor pause: idle until resumed or reset
+      while (pauseRef.current && !stopRef.current) {
+        await sleep(80);
+      }
+      if (stopRef.current) break;
 
-      // At very high speeds, skip the sleep entirely on most frames so React
-      // is not overwhelmed by tiny timeouts. We still yield occasionally.
+      const f = steps[i];
+      setFrame(f);
+      if (f.message) pushLog(f.message);
+
       const delay = speedToDelay(speedRef.current);
       if (delay <= 0) {
-        // Yield to the browser every ~16 frames so the UI stays responsive
         if (i % 16 === 0) await sleep(0);
         continue;
       }
@@ -138,9 +159,9 @@ function SortingPage() {
     }
 
     setRunning(false);
+    setPaused(false);
   }
 
-  // CSS class for each box based on the current frame
   function classFor(index: number): string {
     if (frame.sorted.has(index)) return "av-box sorted";
     if (frame.current && frame.current.includes(index)) return "av-box current";
@@ -149,7 +170,6 @@ function SortingPage() {
     return "av-box";
   }
 
-  // Small label shown under each box (e.g. "0 (sorted)")
   function labelFor(index: number): string {
     if (frame.sorted.has(index)) return `${index} (sorted)`;
     if (frame.current && frame.current.includes(index)) return `${index} (current)`;
@@ -163,7 +183,6 @@ function SortingPage() {
       <h1 className="av-page-title">📊 Sorting Algorithms</h1>
       <p className="av-page-sub">Pick an algorithm and watch it sort with rectangular boxes.</p>
 
-      {/* Controls panel */}
       <div className="av-panel">
         <div className="av-controls">
           <div className="av-control-group">
@@ -195,24 +214,27 @@ function SortingPage() {
           </div>
         </div>
 
-        {/* Action buttons */}
         <div className="av-controls" style={{ marginTop: 16 }}>
           <button className="av-btn av-btn-ghost" onClick={handleCustom} disabled={running}>Use Array</button>
           <button className="av-btn av-btn-ghost" onClick={handleRandom} disabled={running}>Generate Random Array</button>
           <button className="av-btn av-btn-green" onClick={handleStart} disabled={running}>
             {running ? "Sorting…" : speed === 100 ? "Instant Sort" : "Start Sorting"}
           </button>
+          {paused ? (
+            <button className="av-btn av-btn-green" onClick={handleResume}>Resume</button>
+          ) : (
+            <button className="av-btn av-btn-ghost" onClick={handlePause} disabled={!running}>Pause</button>
+          )}
           <button className="av-btn av-btn-red" onClick={handleReset}>Reset</button>
         </div>
 
-        {/* Statistics */}
         <div className="av-stats">
           <div className="av-stat">Comparisons<strong>{frame.comparisons}</strong></div>
           <div className="av-stat">Swaps<strong>{frame.swaps}</strong></div>
+          <div className="av-stat">Status<strong>{paused ? "Paused" : running ? "Running" : "Idle"}</strong></div>
         </div>
       </div>
 
-      {/* The boxes that visualize the array */}
       <div className="av-panel">
         <h2 className="av-section-title">Array Visualization</h2>
         <div className="av-boxes">
@@ -224,7 +246,6 @@ function SortingPage() {
           ))}
         </div>
 
-        {/* Current Step explanation panel */}
         <div className="av-step">
           <div className="av-step-label">Current Step</div>
           <div className="av-legend">
@@ -236,12 +257,30 @@ function SortingPage() {
         </div>
       </div>
 
-      {/* Merge Sort recursion tree (only when merge sort is selected) */}
+      {/* Log Tracer panel */}
+      <div className="av-panel">
+        <div className="av-log-header">
+          <h2 className="av-section-title" style={{ margin: 0 }}>Log Tracer</h2>
+          <span className="av-log-count">{logs.length} step{logs.length === 1 ? "" : "s"}</span>
+        </div>
+        <div className="av-log-panel" ref={logsRef}>
+          {logs.length === 0 ? (
+            <div className="av-log-empty">Logs will appear here as the algorithm runs.</div>
+          ) : (
+            logs.map((line, i) => (
+              <div key={logs.length - i} className={`av-log-line ${i === 0 ? "is-latest" : ""}`}>
+                <span className="av-log-index">#{logs.length - i}</span>
+                <span className="av-log-text">{line}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {algo === "merge" && (
         <MergeTree array={array} speed={speed} running={running} />
       )}
 
-      {/* Educational info card */}
       <AlgoInfo {...SORTING_INFO[algo]} />
     </div>
   );
