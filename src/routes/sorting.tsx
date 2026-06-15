@@ -134,6 +134,7 @@ function SortingPage() {
     pauseRef.current = false;
     setPaused(false);
     setRunning(true);
+    runningRef.current = true;
     setLogs([]);
 
     const steps = SORTERS[algo]([...array]);
@@ -142,13 +143,13 @@ function SortingPage() {
       setFrame(steps[steps.length - 1]);
       pushLog("Sort completed (instant)");
       setRunning(false);
+      runningRef.current = false;
       return;
     }
 
     for (let i = 0; i < steps.length; i++) {
       if (stopRef.current) break;
 
-      // Honor pause: idle until resumed or reset
       while (pauseRef.current && !stopRef.current) {
         await sleep(80);
       }
@@ -168,7 +169,9 @@ function SortingPage() {
 
     setRunning(false);
     setPaused(false);
+    runningRef.current = false;
   }
+
 
   function classFor(index: number): string {
     if (frame.sorted.has(index)) return "av-box sorted";
