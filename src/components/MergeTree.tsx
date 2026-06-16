@@ -111,7 +111,7 @@ export function MergeTree({ array, speed, running }: Props) {
       {/* SPLIT PHASE */}
       <div className="mt-section">
         <div className="mt-label">Split Phase ↓</div>
-        {splitRows.map((row, level) => (
+        {splitRows.filter(Boolean).map((row, level) => (
           <div className="mt-row" key={`s-${level}`}>
             {row.map((step, idx) => (
               <div className="mt-node mt-split" key={idx}>
