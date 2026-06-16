@@ -125,7 +125,7 @@ export function MergeTree({ array, speed, running }: Props) {
       {/* MERGE PHASE */}
       <div className="mt-section" style={{ marginTop: 16 }}>
         <div className="mt-label">Merge Phase ↑</div>
-        {[...mergeRows].reverse().map((row, level) => (
+        {[...mergeRows].reverse().filter(Boolean).map((row, level) => (
           <div className="mt-row" key={`m-${level}`}>
             {row.map((step, idx) => (
               <div className="mt-node mt-merge" key={idx}>
