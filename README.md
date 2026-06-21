@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="Screenshot (273)" src="https://github.com/user-attachments/assets/cc3eab8f-98ff-42d6-9a9c-66711c48ebac" />
+
 # AlgoVision 🚀
 
 AlgoVision is an interactive web application that helps users understand Data Structures and Algorithms through visual animations and step-by-step execution.
