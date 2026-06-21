@@ -1,4 +1,5 @@
-
+<img width="1920" height="885" alt="Screenshot (274)" src="https://github.com/user-attachments/assets/babdb399-2918-4040-a2a0-146fe161f570" />
+<img width="1920" height="873" alt="Screenshot (273)" src="https://github.com/user-attachments/assets/204716e3-4398-4da7-9f4f-84e93e28d251" />
 
 
 
@@ -61,5 +62,4 @@ src/
     ├── algoData.ts
     └── sortAlgos.ts
 
-<img width="1920" height="885" alt="Screenshot (274)" src="https://github.com/user-attachments/assets/babdb399-2918-4040-a2a0-146fe161f570" />
-<img width="1920" height="873" alt="Screenshot (273)" src="https://github.com/user-attachments/assets/204716e3-4398-4da7-9f4f-84e93e28d251" />
+
