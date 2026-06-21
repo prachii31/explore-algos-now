@@ -36,6 +36,78 @@ function Home() {
             </Link>
           ))}
         </div>
+
+
+        {/* Built to Teach */}
+        <section className="av-section">
+          <h2 className="av-section-title">Built to Teach</h2>
+
+          <div className="av-grid">
+            <div className="av-card">
+              <div className="av-card-icon">✨</div>
+              <h3>Step-by-step Animation</h3>
+              <p>
+                Watch every comparison, swap and pointer movement in real time.
+              </p>
+            </div>
+
+            <div className="av-card">
+              <div className="av-card-icon">⚡</div>
+              <h3>Speed & Size Controls</h3>
+              <p>
+                Slow down to understand concepts or speed up execution
+                instantly.
+              </p>
+            </div>
+
+            <div className="av-card">
+              <div className="av-card-icon">📊</div>
+              <h3>Complexity Analysis</h3>
+              <p>
+                View time and space complexity for each algorithm and data
+                structure.
+              </p>
+            </div>
+
+            <div className="av-card">
+              <div className="av-card-icon">📚</div>
+              <h3>Built for Learners</h3>
+              <p>
+                Understand concepts visually instead of memorizing theory.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* About AlgoVision */}
+        <section className="av-section">
+          <div className="av-panel">
+            <h2 className="av-section-title">About AlgoVision</h2>
+
+            <p className="av-about-text">
+              AlgoVision is an interactive algorithm visualizer designed to help
+              students, interview candidates, and aspiring software engineers
+              understand algorithms and data structures through real-time
+              animations.
+              <br />
+              <br />
+              The platform includes Sorting Algorithms, Searching Algorithms,
+              Stacks, Queues, Linked Lists, and Binary Search Trees with
+              step-by-step execution, speed controls, complexity analysis, and
+              operation logs.
+              <br />
+              <br />
+              Instead of memorizing concepts, users can visualize how each
+              algorithm works internally, making learning more intuitive,
+              engaging, and practical.
+            </p>
+          </div>
+        </section>
+
+
+
+      
+      
       </div>
     </>
   );

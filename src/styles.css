@@ -435,3 +435,260 @@
   min-width: 36px;
 }
 .av-log-text { flex: 1; word-break: break-word; }
+
+.av-section {
+  margin-top: 80px;
+}
+
+.av-section-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.av-about-text {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  line-height: 1.8;
+  color: #cbd5e1;
+}
+
+
+/* ============================================================
+   Binary Search visualization additions for searching.tsx
+   Paste these into your global CSS file (alongside the
+   existing .av-box / .av-btn / .av-panel rules).
+   ============================================================ */
+
+/* Extra horizontal breathing room between array cells when
+   pointer labels are shown underneath */
+.av-boxes-spaced {
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Wraps a single array box + its pointer labels so they
+   stack vertically and stay aligned under the cell */
+.av-box-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- Box states ---- */
+
+/* Element currently inside the active [low, high] range */
+.av-box-range {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+  transform: translateY(-2px);
+  transition: background 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* The mid element for the current iteration */
+.av-box-mid {
+  background: #f59e0b;
+  border-color: #fbbf24;
+  color: #1a1a1a;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+/* Found target */
+.av-box-found {
+  background: #16a34a;
+  border-color: #22c55e;
+  color: #fff;
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Elements that have been eliminated from the current search range */
+.av-box-faded {
+  opacity: 0.3;
+  filter: grayscale(40%);
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+/* ---- Pointer labels (i / mid / j) under each box ---- */
+
+.av-pointer-row {
+  display: flex;
+  gap: 4px;
+  min-height: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.av-pointer-label {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.av-pointer-empty {
+  visibility: hidden;
+}
+
+.av-pointer-i {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.av-pointer-j {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.av-pointer-mid {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+/* ---- Legend ---- */
+
+.av-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  color: #c7c7c7;
+}
+
+.av-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.av-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.av-legend-range { background: #2563eb; }
+.av-legend-mid { background: #f59e0b; }
+.av-legend-found { background: #16a34a; }
+
+.av-legend-pointer {
+  font-weight: 700;
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- Step log panel ("Log Tracer") ---- */
+
+.av-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.av-log-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.av-log-badge {
+  font-size: 13px;
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.av-log {
+  max-height: 420px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.av-log-empty {
+  color: #777;
+  font-style: italic;
+  padding: 12px;
+}
+
+.av-log-line {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+/* The most recent step, highlighted like the top row in the Sorting Log Tracer */
+.av-log-latest {
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.av-log-index {
+  color: #6b7280;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.av-log-latest .av-log-index {
+  color: #93c5fd;
+}
+
+.av-log-text {
+  flex: 1;
+}
+
+.av-log-compare { color: #93c5fd; }
+.av-log-move { color: #fbbf24; }
+.av-log-found { color: #4ade80; font-weight: 600; }
+.av-log-fail { color: #f87171; font-weight: 600; }
+.av-log-info { color: #d4d4d4; }
+
+/* Colored text stays visible even when the row is also the highlighted "latest" row */
+.av-log-latest.av-log-compare,
+.av-log-latest.av-log-move,
+.av-log-latest.av-log-found,
+.av-log-latest.av-log-fail,
+.av-log-latest.av-log-info {
+  color: #ffffff;
+}
+
+/* Scrollbar styling to match a dark theme, optional */
+.av-log::-webkit-scrollbar {
+  width: 8px;
+}
+.av-log::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+.av-log::-webkit-scrollbar-track {
+  background: transparent;
+}
