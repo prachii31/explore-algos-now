@@ -457,20 +457,17 @@
 
 
 /* ============================================================
-   Binary Search visualization additions for searching.tsx
-   Paste these into your global CSS file (alongside the
-   existing .av-box / .av-btn / .av-panel rules).
+   Binary/Linear Search visualization additions
+   Paste into your global CSS file alongside existing av-* rules
    ============================================================ */
 
-/* Extra horizontal breathing room between array cells when
-   pointer labels are shown underneath */
+/* Extra gap between cells so pointer labels don't crowd */
 .av-boxes-spaced {
   gap: 14px;
   flex-wrap: wrap;
 }
 
-/* Wraps a single array box + its pointer labels so they
-   stack vertically and stay aligned under the cell */
+/* Column wrapper: stacks the box and its pointer labels */
 .av-box-col {
   display: flex;
   flex-direction: column;
@@ -478,9 +475,18 @@
   gap: 6px;
 }
 
-/* ---- Box states ---- */
+/* ── Box state classes ── */
 
-/* Element currently inside the active [low, high] range */
+/* Linear search: element currently being checked */
+.av-box-compare {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+  transform: translateY(-3px);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+/* Binary search: element is inside the current [low, high] range */
 .av-box-range {
   background: #2563eb;
   border-color: #3b82f6;
@@ -489,47 +495,50 @@
   transition: background 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
 }
 
-/* The mid element for the current iteration */
+/* Binary search: the mid element for this iteration */
 .av-box-mid {
   background: #f59e0b;
   border-color: #fbbf24;
   color: #1a1a1a;
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
-  transition: background 0.25s ease, transform 0.25s ease;
+  transform: translateY(-5px) scale(1.07);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* Found target */
+/* Both: found target */
 .av-box-found {
   background: #16a34a;
   border-color: #22c55e;
   color: #fff;
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-3px) scale(1.07);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* Elements that have been eliminated from the current search range */
+/* Binary search: elements outside the current search range */
 .av-box-faded {
-  opacity: 0.3;
-  filter: grayscale(40%);
+  opacity: 0.28;
+  filter: grayscale(50%);
   transition: opacity 0.25s ease, filter 0.25s ease;
 }
 
-/* ---- Pointer labels (i / mid / j) under each box ---- */
+/* ── Pointer labels (i / mid / j) under binary search boxes ── */
 
 .av-pointer-row {
   display: flex;
   gap: 4px;
-  min-height: 20px;
+  min-height: 22px;
   align-items: center;
   justify-content: center;
 }
 
 .av-pointer-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 2px 6px;
   border-radius: 6px;
   line-height: 1.4;
+  letter-spacing: 0.02em;
 }
 
 .av-pointer-empty {
@@ -537,21 +546,24 @@
 }
 
 .av-pointer-i {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.18);
   color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .av-pointer-j {
-  background: rgba(248, 113, 113, 0.15);
+  background: rgba(248, 113, 113, 0.18);
   color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
 }
 
 .av-pointer-mid {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.18);
   color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-/* ---- Legend ---- */
+/* ── Legend (shown below the array) ── */
 
 .av-legend {
   display: flex;
@@ -568,7 +580,7 @@
 .av-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .av-legend-swatch {
@@ -576,21 +588,24 @@
   height: 14px;
   border-radius: 4px;
   display: inline-block;
+  flex-shrink: 0;
 }
 
-.av-legend-range { background: #2563eb; }
-.av-legend-mid { background: #f59e0b; }
-.av-legend-found { background: #16a34a; }
+.av-legend-range          { background: #2563eb; }
+.av-legend-mid            { background: #f59e0b; }
+.av-legend-found          { background: #16a34a; }
+.av-legend-linear-active  { background: #2563eb; }
 
 .av-legend-pointer {
   font-weight: 700;
-  font-size: 12px;
-  padding: 1px 6px;
+  font-size: 11px;
+  padding: 2px 7px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* ---- Step log panel ("Log Tracer") ---- */
+/* ── Log Tracer panel ── */
 
 .av-log-header {
   display: flex;
@@ -628,33 +643,33 @@
 }
 
 .av-log-empty {
-  color: #777;
+  color: #6b7280;
   font-style: italic;
   padding: 12px;
+  text-align: center;
 }
 
 .av-log-line {
   display: flex;
   gap: 16px;
   align-items: baseline;
+  padding: 9px 12px;
+  border-radius: 7px;
   color: #d4d4d4;
-  white-space: pre-wrap;
   word-break: break-word;
-  padding: 10px 12px;
-  border-radius: 8px;
 }
 
-/* The most recent step, highlighted like the top row in the Sorting Log Tracer */
+/* Most recent step — highlighted blue row */
 .av-log-latest {
-  background: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.2);
   border: 1px solid rgba(59, 130, 246, 0.35);
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: 600;
 }
 
 .av-log-index {
   color: #6b7280;
-  min-width: 32px;
+  min-width: 34px;
   flex-shrink: 0;
 }
 
@@ -666,29 +681,14 @@
   flex: 1;
 }
 
+/* Per-kind text colours (dimmer rows only — latest always goes white via !important above) */
 .av-log-compare { color: #93c5fd; }
-.av-log-move { color: #fbbf24; }
-.av-log-found { color: #4ade80; font-weight: 600; }
-.av-log-fail { color: #f87171; font-weight: 600; }
-.av-log-info { color: #d4d4d4; }
+.av-log-move    { color: #fbbf24; }
+.av-log-found   { color: #4ade80; font-weight: 600; }
+.av-log-fail    { color: #f87171; font-weight: 600; }
+.av-log-info    { color: #d4d4d4; }
 
-/* Colored text stays visible even when the row is also the highlighted "latest" row */
-.av-log-latest.av-log-compare,
-.av-log-latest.av-log-move,
-.av-log-latest.av-log-found,
-.av-log-latest.av-log-fail,
-.av-log-latest.av-log-info {
-  color: #ffffff;
-}
-
-/* Scrollbar styling to match a dark theme, optional */
-.av-log::-webkit-scrollbar {
-  width: 8px;
-}
-.av-log::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-}
-.av-log::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* Custom scrollbar */
+.av-log::-webkit-scrollbar       { width: 6px; }
+.av-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 6px; }
+.av-log::-webkit-scrollbar-track { background: transparent; }
