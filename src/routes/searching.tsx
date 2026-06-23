@@ -24,8 +24,10 @@ interface BinaryState {
   low: number | null;
   high: number | null;
   mid: number | null;
-  // true only while the search is actively running (not on idle/reset)
+  // active: search is running — drives range/faded/mid box colours
   active: boolean;
+  // frozen: search just finished — keeps i/mid/j labels visible but no range colouring
+  frozen: boolean;
 }
 
 function randomArray(n: number): number[] {
@@ -55,7 +57,7 @@ function SearchingPage() {
   // FIX 1: added `active` flag so we never apply range styling before a search starts,
   // even when low === 0 (which is falsy and caused all boxes to turn blue on load)
   const [binaryState, setBinaryState] = useState<BinaryState>({
-    low: null, high: null, mid: null, active: false,
+    low: null, high: null, mid: null, active: false, frozen: false,
   });
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
@@ -85,8 +87,7 @@ function SearchingPage() {
     setFoundIndex(null);
     setComparisons(0);
     setMsg(null);
-    // FIX 1: always reset active to false so boxes go plain on reset
-    setBinaryState({ low: null, high: null, mid: null, active: false });
+    setBinaryState({ low: null, high: null, mid: null, active: false, frozen: false });
     setLogs([]);
   }
 
@@ -150,8 +151,7 @@ function SearchingPage() {
     let high = arr.length - 1;
     let count = 0;
 
-    // FIX 1: set active: true so the range highlight only kicks in now
-    setBinaryState({ low, high, mid: null, active: true });
+    setBinaryState({ low, high, mid: null, active: true, frozen: false });
     pushLog(`Starting search range: index ${low} to ${high}`, "info");
     await sleep(stepDelay());
     if (stopRef.current) return;
@@ -161,7 +161,7 @@ function SearchingPage() {
 
       const mid = Math.floor((low + high) / 2);
       setActiveIndex(mid);
-      setBinaryState({ low, high, mid, active: true });
+      setBinaryState({ low, high, mid, active: true, frozen: false });
       count++;
       setComparisons(count);
       pushLog(`Checking middle element ${arr[mid]}  (index ${mid})`, "compare");
@@ -170,8 +170,9 @@ function SearchingPage() {
 
       if (arr[mid] === target) {
         setFoundIndex(mid);
-        // FIX 2: clear binaryState immediately on found so i/mid/j labels disappear
-        setBinaryState({ low: null, high: null, mid: null, active: false });
+        // Freeze: keep low/mid/high so pointer labels stay visible, but turn off
+        // active so range/faded colouring clears — found cell gets its own green style
+        setBinaryState({ low, high, mid, active: false, frozen: true });
         setActiveIndex(null);
         setMsg({ text: `Found ${target} at index ${mid}!`, type: "success" });
         pushLog(`Found target ${target} at index ${mid}`, "found");
@@ -190,13 +191,13 @@ function SearchingPage() {
 
       if (low <= high) {
         pushLog(`New search range: index ${low} to ${high}`, "info");
-        setBinaryState({ low, high, mid: null, active: true });
+        setBinaryState({ low, high, mid: null, active: true, frozen: false });
         await sleep(stepDelay());
         if (stopRef.current) return;
       }
     }
 
-    setBinaryState({ low: null, high: null, mid: null, active: false });
+    setBinaryState({ low: null, high: null, mid: null, active: false, frozen: false });
     setMsg({ text: `${target} not found in array.`, type: "error" });
     pushLog(`${target} not found in array`, "fail");
   }
@@ -243,9 +244,9 @@ function SearchingPage() {
     return classes.join(" ");
   }
 
-  // FIX 2: only render pointer labels when binaryState.active (not after found/reset)
+  // Show pointer labels when active (search running) OR frozen (just found/finished)
   function pointersFor(index: number): string[] {
-    if (algo !== "binary" || !binaryState.active) return [];
+    if (algo !== "binary" || (!binaryState.active && !binaryState.frozen)) return [];
     const labels: string[] = [];
     const { low, high, mid } = binaryState;
     if (low === index) labels.push("i");
