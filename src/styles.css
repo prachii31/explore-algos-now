@@ -477,12 +477,13 @@
 
 /* ── Box state classes ── */
 
-/* Linear search: element currently being checked */
+/* Linear search: element currently being checked — yellow like sorting page */
 .av-box-compare {
-  background: #2563eb;
-  border-color: #3b82f6;
-  color: #fff;
-  transform: translateY(-3px);
+  background: #f59e0b;
+  border-color: #fbbf24;
+  color: #1a1a1a;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -594,7 +595,7 @@
 .av-legend-range          { background: #2563eb; }
 .av-legend-mid            { background: #f59e0b; }
 .av-legend-found          { background: #16a34a; }
-.av-legend-linear-active  { background: #2563eb; }
+.av-legend-linear-active  { background: #f59e0b; }
 
 .av-legend-pointer {
   font-weight: 700;
