@@ -250,9 +250,9 @@ function SearchingPage() {
     if (algo !== "binary" || (!binaryState.active && !binaryState.frozen)) return [];
     const labels: string[] = [];
     const { low, high, mid } = binaryState;
-    if (low === index) labels.push("i");
+    if (low === index) labels.push("start");
     if (mid === index) labels.push("mid");
-    if (high === index) labels.push("j");
+    if (high === index) labels.push("end");
     return labels;
   }
 
@@ -398,8 +398,8 @@ function SearchingPage() {
             <div className="av-legend-item"><span className="av-legend-swatch av-legend-range" />Search Range</div>
             <div className="av-legend-item"><span className="av-legend-swatch av-legend-mid" />Mid Element</div>
             <div className="av-legend-item"><span className="av-legend-swatch av-legend-found" />Found Element</div>
-            <div className="av-legend-item"><span className="av-legend-pointer">i</span>Low Pointer</div>
-            <div className="av-legend-item"><span className="av-legend-pointer">j</span>High Pointer</div>
+            <div className="av-legend-item"><span className="av-legend-pointer">start</span>Low Pointer</div>
+            <div className="av-legend-item"><span className="av-legend-pointer">end</span>High Pointer</div>
           </div>
         )}
 
