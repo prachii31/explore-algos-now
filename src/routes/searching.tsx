@@ -183,11 +183,11 @@ function SearchingPage() {
       if (arr[mid] < target) {
         pushLog(`${arr[mid]} < ${target}  →  target is in right half`, "info");
         low = mid + 1;
-        pushLog(`Moving low pointer  i  →  index ${low}`, "move");
+        pushLog(`Moving low pointer  start  →  index ${low}`, "move");
       } else {
         pushLog(`${arr[mid]} > ${target}  →  target is in left half`, "info");
         high = mid - 1;
-        pushLog(`Moving high pointer  j  →  index ${high}`, "move");
+        pushLog(`Moving high pointer  end  →  index ${high}`, "move");
       }
 
       if (low <= high) {
