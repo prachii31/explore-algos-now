@@ -44,6 +44,7 @@ function sleep(ms: number): Promise<void> {
 
 function SearchingPage() {
   const [algo, setAlgo] = useState<Algo>("linear");
+  const [arraySize, setArraySize] = useState(12);
   const [array, setArray] = useState<number[]>(() => randomArray(12));
   const [customInput, setCustomInput] = useState("");
   const [target, setTarget] = useState<number>(0);
@@ -92,7 +93,7 @@ function SearchingPage() {
   }
 
   function handleRandom() {
-    if (!running) { setArray(randomArray(12)); resetVisualization(); }
+    if (!running) { setArray(randomArray(arraySize)); resetVisualization(); }
   }
 
   function handleCustom() {
@@ -305,6 +306,23 @@ function SearchingPage() {
               <option value="linear">Linear Search</option>
               <option value="binary">Binary Search (auto-sorted)</option>
             </select>
+          </div>
+          <div className="av-control-group">
+            <label>Array Size: {arraySize}</label>
+            <input
+              className="av-slider"
+              type="range"
+              min={5}
+              max={20}
+              value={arraySize}
+              disabled={running}
+              onChange={(e) => {
+                const size = Number(e.target.value);
+                setArraySize(size);
+                setArray(randomArray(size));
+                resetVisualization();
+              }}
+            />
           </div>
           <div className="av-control-group">
             <label>Target</label>
