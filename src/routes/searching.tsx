@@ -325,16 +325,6 @@ function SearchingPage() {
             />
           </div>
           <div className="av-control-group">
-            <label>Target</label>
-            <input
-              className="av-input"
-              type="number"
-              value={target}
-              disabled={running}
-              onChange={(e) => setTarget(Number(e.target.value))}
-            />
-          </div>
-          <div className="av-control-group">
             <label>Speed: {speed}%</label>
             <input
               className="av-slider"
@@ -343,6 +333,16 @@ function SearchingPage() {
               max={100}
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
+            />
+          </div>
+          <div className="av-control-group">
+            <label>Target</label>
+            <input
+              className="av-input"
+              type="number"
+              value={target}
+              disabled={running}
+              onChange={(e) => setTarget(Number(e.target.value))}
             />
           </div>
           <div className="av-control-group" style={{ minWidth: 240, flex: 1 }}>
