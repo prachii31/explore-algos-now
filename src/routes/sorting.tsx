@@ -2,20 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { SORTERS, type Frame } from "@/utils/sortAlgos";
 import { AlgoInfo } from "@/components/AlgoInfo";
-import { MergeTree } from "@/components/MergeTree";
 import { SORTING_INFO } from "@/utils/algoData";
 
 export const Route = createFileRoute("/sorting")({
   head: () => ({
     meta: [
       { title: "Sorting Algorithms – AlgoVision" },
-      { name: "description", content: "Visualize Bubble, Selection, Insertion, Merge and Quick Sort step by step." },
+      { name: "description", content: "Visualize Bubble, Selection, Insertion and Quick Sort step by step." },
     ],
   }),
   component: SortingPage,
 });
 
-type AlgoKey = "bubble" | "selection" | "insertion" | "merge" | "quick";
+type AlgoKey = "bubble" | "selection" | "insertion" | "quick";
 
 function randomArray(n: number): number[] {
   const arr: number[] = [];
@@ -30,7 +29,6 @@ function emptyFrame(array: number[]): Frame {
 }
 
 function speedToDelay(speed: number): number {
-  if (speed >= 100) return 0;
   return Math.round(1500 * Math.pow(0.05, (speed - 1) / 99));
 }
 
@@ -42,11 +40,9 @@ function SortingPage() {
   const [customInput, setCustomInput] = useState("");
   const [frame, setFrame] = useState<Frame>(() => emptyFrame([]));
   const [running, setRunning] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
 
   const stopRef = useRef(false);
-  const pauseRef = useRef(false);
   const speedRef = useRef(speed);
   const logsRef = useRef<HTMLDivElement>(null);
   const runningRef = useRef(false);
@@ -96,23 +92,9 @@ function SortingPage() {
 
   function handleReset() {
     stopRef.current = true;
-    pauseRef.current = false;
     setRunning(false);
-    setPaused(false);
     setFrame(emptyFrame(array));
     setLogs([]);
-  }
-
-  function handlePause() {
-    if (!running || paused) return;
-    pauseRef.current = true;
-    setPaused(true);
-  }
-
-  function handleResume() {
-    if (!paused) return;
-    pauseRef.current = false;
-    setPaused(false);
   }
 
   function sleep(ms: number): Promise<void> {
@@ -131,28 +113,13 @@ function SortingPage() {
   async function handleStart() {
     if (running) return;
     stopRef.current = false;
-    pauseRef.current = false;
-    setPaused(false);
     setRunning(true);
     runningRef.current = true;
     setLogs([]);
 
     const steps = SORTERS[algo]([...array]);
 
-    if (speedRef.current >= 100) {
-      setFrame(steps[steps.length - 1]);
-      pushLog("Sort completed (instant)");
-      setRunning(false);
-      runningRef.current = false;
-      return;
-    }
-
     for (let i = 0; i < steps.length; i++) {
-      if (stopRef.current) break;
-
-      while (pauseRef.current && !stopRef.current) {
-        await sleep(80);
-      }
       if (stopRef.current) break;
 
       const f = steps[i];
@@ -168,7 +135,6 @@ function SortingPage() {
     }
 
     setRunning(false);
-    setPaused(false);
     runningRef.current = false;
   }
 
@@ -203,7 +169,6 @@ function SortingPage() {
               <option value="bubble">Bubble Sort</option>
               <option value="selection">Selection Sort</option>
               <option value="insertion">Insertion Sort</option>
-              <option value="merge">Merge Sort</option>
               <option value="quick">Quick Sort</option>
             </select>
           </div>
@@ -213,7 +178,7 @@ function SortingPage() {
               disabled={running} onChange={(e) => handleSize(Number(e.target.value))} />
           </div>
           <div className="av-control-group">
-            <label>Speed: {speed === 100 ? "Instant" : `${speed}%`}</label>
+            <label>Speed: {speed}%</label>
             <input className="av-slider" type="range" min={1} max={100} value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))} />
           </div>
@@ -229,20 +194,9 @@ function SortingPage() {
           <button className="av-btn av-btn-ghost" onClick={handleCustom} disabled={running}>Use Array</button>
           <button className="av-btn av-btn-ghost" onClick={handleRandom} disabled={running}>Generate Random Array</button>
           <button className="av-btn av-btn-green" onClick={handleStart} disabled={running}>
-            {running ? "Sorting…" : speed === 100 ? "Instant Sort" : "Start Sorting"}
+            {running ? "Sorting…" : "Start Sorting"}
           </button>
-          {paused ? (
-            <button className="av-btn av-btn-green" onClick={handleResume}>Resume</button>
-          ) : (
-            <button className="av-btn av-btn-ghost" onClick={handlePause} disabled={!running}>Pause</button>
-          )}
           <button className="av-btn av-btn-red" onClick={handleReset}>Reset</button>
-        </div>
-
-        <div className="av-stats">
-          <div className="av-stat">Comparisons<strong>{frame.comparisons}</strong></div>
-          <div className="av-stat">Swaps<strong>{frame.swaps}</strong></div>
-          <div className="av-stat">Status<strong>{paused ? "Paused" : running ? "Running" : "Idle"}</strong></div>
         </div>
       </div>
 
@@ -287,10 +241,6 @@ function SortingPage() {
           )}
         </div>
       </div>
-
-      {algo === "merge" && (
-        <MergeTree array={array} speed={speed} running={running} />
-      )}
 
       <AlgoInfo {...SORTING_INFO[algo]} />
     </div>

@@ -12,7 +12,7 @@ export const Route = createFileRoute("/")({
 
 const CARDS: Array<{ to: string; icon: string; title: string; desc: string }> = [
   { to: "/searching", icon: "🔍", title: "Searching Algorithms", desc: "Visualize Linear and Binary Search step-by-step." },
-  { to: "/sorting", icon: "📊", title: "Sorting Algorithms", desc: "Bubble, Selection, Insertion, Merge & Quick Sort." },
+  { to: "/sorting", icon: "📊", title: "Sorting Algorithms", desc: "Bubble, Selection, Insertion & Quick Sort." },
   { to: "/stack", icon: "🥞", title: "Stack", desc: "LIFO data structure with Push, Pop and Peek." },
   { to: "/queue", icon: "🚶", title: "Queue", desc: "FIFO data structure with Enqueue and Dequeue." },
   { to: "/linked-list", icon: "🔗", title: "Linked List", desc: "Insert, delete and search nodes with pointers." },

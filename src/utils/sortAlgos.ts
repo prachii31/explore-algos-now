@@ -215,97 +215,6 @@ export function insertionSort(input: number[]): Frame[] {
 }
 
 
-// ---------------------------------------------------------------------
-// 4) MERGE SORT
-// ---------------------------------------------------------------------
-export function mergeSort(input: number[]): Frame[] {
-  const array = [...input];
-  const frames: Frame[] = [];
-  const sorted = new Set<number>();
-  let comparisons = 0;
-  let swaps = 0;
-
-  frames.push(saveFrame(array, sorted, comparisons, swaps,
-    { message: "Starting Merge Sort" }));
-
-  function merge(left: number, mid: number, right: number): void {
-    const leftPart = array.slice(left, mid + 1);
-    const rightPart = array.slice(mid + 1, right + 1);
-
-    frames.push(saveFrame(array, sorted, comparisons, swaps, {
-      message: `Merging [${leftPart.join(", ")}] and [${rightPart.join(", ")}]`,
-    }));
-
-    let i = 0, j = 0, k = left;
-
-    while (i < leftPart.length && j < rightPart.length) {
-      comparisons++;
-      frames.push(saveFrame(array, sorted, comparisons, swaps, {
-        compare: [left + i, mid + 1 + j],
-        message: `Comparing ${leftPart[i]} and ${rightPart[j]}`,
-      }));
-
-      if (leftPart[i] <= rightPart[j]) {
-        array[k] = leftPart[i];
-        frames.push(saveFrame(array, sorted, comparisons, swaps, {
-          current: [k],
-          message: `Taking ${leftPart[i]} from the left half`,
-        }));
-        i++;
-      } else {
-        array[k] = rightPart[j];
-        swaps++;
-        frames.push(saveFrame(array, sorted, comparisons, swaps, {
-          current: [k],
-          message: `Taking ${rightPart[j]} from the right half`,
-        }));
-        j++;
-      }
-      k++;
-    }
-
-    while (i < leftPart.length) {
-      array[k] = leftPart[i];
-      frames.push(saveFrame(array, sorted, comparisons, swaps, {
-        current: [k],
-        message: `Copying remaining ${leftPart[i]} from the left half`,
-      }));
-      i++; k++;
-    }
-
-    while (j < rightPart.length) {
-      array[k] = rightPart[j];
-      frames.push(saveFrame(array, sorted, comparisons, swaps, {
-        current: [k],
-        message: `Copying remaining ${rightPart[j]} from the right half`,
-      }));
-      j++; k++;
-    }
-
-    frames.push(saveFrame(array, sorted, comparisons, swaps, {
-      message: `Merged subarray: [${array.slice(left, right + 1).join(", ")}]`,
-    }));
-  }
-
-  function sort(left: number, right: number): void {
-    if (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      frames.push(saveFrame(array, sorted, comparisons, swaps, {
-        message: `Splitting [${array.slice(left, right + 1).join(", ")}] into left and right halves`,
-      }));
-      sort(left, mid);
-      sort(mid + 1, right);
-      merge(left, mid, right);
-    }
-  }
-
-  sort(0, array.length - 1);
-
-  for (let k = 0; k < array.length; k++) sorted.add(k);
-  frames.push(saveFrame(array, sorted, comparisons, swaps,
-    { message: "Array is fully sorted ✅" }));
-  return frames;
-}
 
 
 // ---------------------------------------------------------------------
@@ -385,6 +294,6 @@ export const SORTERS = {
   bubble: bubbleSort,
   selection: selectionSort,
   insertion: insertionSort,
-  merge: mergeSort,
+  
   quick: quickSort,
 };

@@ -36,18 +36,7 @@ export const SORTING_INFO: Record<string, AlgoInfoProps> = {
     j = j - 1
   arr[j+1] = key`,
   },
-  merge: {
-    name: "Merge Sort",
-    description: "A divide-and-conquer algorithm that splits the array in halves, recursively sorts them, then merges the sorted halves into one sorted array.",
-    time: { best: "O(n log n)", average: "O(n log n)", worst: "O(n log n)" },
-    space: "O(n)",
-    pseudocode: `mergeSort(arr, l, r):
-  if l < r
-    m = (l + r) / 2
-    mergeSort(arr, l, m)
-    mergeSort(arr, m+1, r)
-    merge(arr, l, m, r)`,
-  },
+  
   quick: {
     name: "Quick Sort",
     description: "Picks a 'pivot' element and partitions the array so elements smaller than the pivot are on its left and larger on the right. Recursively sorts the partitions.",

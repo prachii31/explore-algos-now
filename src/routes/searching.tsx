@@ -364,9 +364,7 @@ function SearchingPage() {
           </button>
           <button className="av-btn av-btn-red" onClick={resetVisualization}>Reset</button>
         </div>
-        <div className="av-stats">
-          <div className="av-stat">Comparisons<strong>{comparisons}</strong></div>
-        </div>
+        
         {msg && <div className={`av-msg ${msg.type}`}>{msg.text}</div>}
       </div>
 
