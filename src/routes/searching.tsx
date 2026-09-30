@@ -138,6 +138,7 @@ function SearchingPage() {
         pushLog(`${arr[i]} ≠ ${target}, moving on`, "info");
       }
     }
+    setActiveIndex(null);
     setMsg({ text: `${target} not found in array.`, type: "error" });
     pushLog(`${target} not found in array`, "fail");
   }
@@ -198,6 +199,7 @@ function SearchingPage() {
       }
     }
 
+    setActiveIndex(null);
     setBinaryState({ low: null, high: null, mid: null, active: false, frozen: false });
     setMsg({ text: `${target} not found in array.`, type: "error" });
     pushLog(`${target} not found in array`, "fail");
@@ -364,7 +366,7 @@ function SearchingPage() {
           </button>
           <button className="av-btn av-btn-red" onClick={resetVisualization}>Reset</button>
         </div>
-        
+
         {msg && <div className={`av-msg ${msg.type}`}>{msg.text}</div>}
       </div>
 
