@@ -24,9 +24,7 @@ interface BinaryState {
   low: number | null;
   high: number | null;
   mid: number | null;
-  // active: search is running — drives range/faded/mid box colours
   active: boolean;
-  // frozen: search just finished — keeps i/mid/j labels visible but no range colouring
   frozen: boolean;
 }
 
@@ -51,12 +49,9 @@ function SearchingPage() {
   const [speed, setSpeed] = useState(50);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [foundIndex, setFoundIndex] = useState<number | null>(null);
-  const [comparisons, setComparisons] = useState(0);
   const [running, setRunning] = useState(false);
   const [msg, setMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // FIX 1: added `active` flag so we never apply range styling before a search starts,
-  // even when low === 0 (which is falsy and caused all boxes to turn blue on load)
   const [binaryState, setBinaryState] = useState<BinaryState>({
     low: null, high: null, mid: null, active: false, frozen: false,
   });
@@ -72,7 +67,6 @@ function SearchingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Scroll to top on new log entries (newest entry renders first)
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = 0;
   }, [logs]);
@@ -86,7 +80,6 @@ function SearchingPage() {
     setRunning(false);
     setActiveIndex(null);
     setFoundIndex(null);
-    setComparisons(0);
     setMsg(null);
     setBinaryState({ low: null, high: null, mid: null, active: false, frozen: false });
     setLogs([]);
@@ -116,14 +109,11 @@ function SearchingPage() {
   // ----- Linear Search -----
   async function runLinearSearch() {
     const arr = [...array];
-    let count = 0;
     pushLog(`Starting linear search for target ${target}`, "info");
 
     for (let i = 0; i < arr.length; i++) {
       if (stopRef.current) return;
       setActiveIndex(i);
-      count++;
-      setComparisons(count);
       pushLog(`Checking index ${i}  →  value ${arr[i]}`, "compare");
       await sleep(stepDelay());
       if (stopRef.current) return;
@@ -151,7 +141,6 @@ function SearchingPage() {
 
     let low = 0;
     let high = arr.length - 1;
-    let count = 0;
 
     setBinaryState({ low, high, mid: null, active: true, frozen: false });
     pushLog(`Starting search range: index ${low} to ${high}`, "info");
@@ -164,16 +153,12 @@ function SearchingPage() {
       const mid = Math.floor((low + high) / 2);
       setActiveIndex(mid);
       setBinaryState({ low, high, mid, active: true, frozen: false });
-      count++;
-      setComparisons(count);
       pushLog(`Checking middle element ${arr[mid]}  (index ${mid})`, "compare");
       await sleep(stepDelay());
       if (stopRef.current) return;
 
       if (arr[mid] === target) {
         setFoundIndex(mid);
-        // Freeze: keep low/mid/high so pointer labels stay visible, but turn off
-        // active so range/faded colouring clears — found cell gets its own green style
         setBinaryState({ low, high, mid, active: false, frozen: true });
         setActiveIndex(null);
         setMsg({ text: `Found ${target} at index ${mid}!`, type: "success" });
@@ -218,7 +203,6 @@ function SearchingPage() {
     setRunning(false);
   }
 
-  // FIX 1: gate on binaryState.active instead of checking low/high for null
   function classFor(index: number): string {
     const classes = ["av-box"];
 
@@ -247,7 +231,6 @@ function SearchingPage() {
     return classes.join(" ");
   }
 
-  // Show pointer labels when active (search running) OR frozen (just found/finished)
   function pointersFor(index: number): string[] {
     if (algo !== "binary" || (!binaryState.active && !binaryState.frozen)) return [];
     const labels: string[] = [];
@@ -258,7 +241,6 @@ function SearchingPage() {
     return labels;
   }
 
-  // Shared log panel renderer — used for both linear and binary
   function renderLogTracer() {
     return (
       <div className="av-panel">
@@ -294,7 +276,6 @@ function SearchingPage() {
       <h1 className="av-page-title">🔍 Searching Algorithms</h1>
       <p className="av-page-sub">Find a target value within an array.</p>
 
-      {/* ── Controls panel ── */}
       <div className="av-panel">
         <div className="av-controls">
           <div className="av-control-group">
@@ -370,7 +351,6 @@ function SearchingPage() {
         {msg && <div className={`av-msg ${msg.type}`}>{msg.text}</div>}
       </div>
 
-      {/* ── Visualization panel ── */}
       <div className="av-panel">
         <div className="av-boxes av-boxes-spaced">
           {array.map((value, index) => {
@@ -392,7 +372,6 @@ function SearchingPage() {
           })}
         </div>
 
-        {/* Legend: binary search only */}
         {algo === "binary" && (
           <div className="av-legend">
             <div className="av-legend-item"><span className="av-legend-swatch av-legend-range" />Search Range</div>
@@ -403,7 +382,6 @@ function SearchingPage() {
           </div>
         )}
 
-        {/* Legend: linear search */}
         {algo === "linear" && (
           <div className="av-legend">
             <div className="av-legend-item"><span className="av-legend-swatch av-legend-linear-active" />Current Element</div>
@@ -412,7 +390,6 @@ function SearchingPage() {
         )}
       </div>
 
-      {/* ── Log Tracer (both algorithms) ── */}
       {renderLogTracer()}
 
       <AlgoInfo {...SEARCHING_INFO[algo]} />
